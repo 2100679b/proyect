@@ -102,31 +102,46 @@ export default {
   },
   methods: {
     async submitForm() {
-      if (!this.isFormValid) return;
+  if (!this.isFormValid) return;
 
-      this.isLoading = true;
-      this.message = '';
-      this.messageType = '';
+  this.isLoading = true;
+  this.message = '';
+  this.messageType = '';
 
-      try {
-        // Simula una llamada al servidor
-        await new Promise(resolve => setTimeout(resolve, 1500));
+  try {
+    const response = await fetch('http://TU_BACKEND_URL/api/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        usuario: this.form.username,
+        email: this.form.email,
+        contrasena: this.form.password
+      })
+    });
 
-        // Aquí iría tu lógica real (por ejemplo, fetch o axios)
-        this.message = 'Usuario registrado con éxito';
-        this.messageType = 'success';
+    const data = await response.json();
 
-        this.form.username = '';
-        this.form.email = '';
-        this.form.password = '';
-        this.form.confirmPassword = '';
-      } catch (error) {
-        this.message = 'Error al registrar usuario';
-        this.messageType = 'error';
-      } finally {
-        this.isLoading = false;
-      }
-    },
+    if (response.ok) {
+      this.message = 'Usuario registrado con éxito';
+      this.messageType = 'success';
+      this.form.username = '';
+      this.form.email = '';
+      this.form.password = '';
+      this.form.confirmPassword = '';
+    } else {
+      this.message = data.error || 'Error al registrar usuario';
+      this.messageType = 'error';
+    }
+  } catch (error) {
+    this.message = 'Error de conexión con el servidor';
+    this.messageType = 'error';
+  } finally {
+    this.isLoading = false;
+  }
+},
+
     goToLogin() {
       this.$emit('switch-view', 'login');
     }
