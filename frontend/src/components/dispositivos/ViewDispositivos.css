@@ -1,0 +1,186 @@
+/*
+ * ViewDispositivos.css - Estilos alegres y vibrantes para la vista de dispositivos.
+ * ENFOCADO EXCLUSIVAMENTE EN EL CONTENEDOR PRINCIPAL Y SUS CONTROLES.
+ * NO AFECTA LOS ESTILOS INTERNOS DE LOS COMPONENTES Dispositivo.vue
+ */
+
+/* Contenedor principal de la vista de dispositivos */
+.view-dispositivos-container {
+  padding: 30px; /* Espaciado general alrededor de la tarjeta */
+  /* Fondo vibrante y alegre */
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); /* Degradado de colores pastel */
+  min-height: calc(100vh - var(--navbar-height, 60px)); /* Altura mínima para ocupar la pantalla */
+  display: flex;
+  justify-content: center; /* Centrar la tarjeta en la página */
+  align-items: flex-start; /* Alinear arriba para que no se pegue al centro si hay poco contenido */
+  padding-top: 50px; /* Espaciado extra en la parte superior */
+  overflow-x: hidden; /* Prevenir scroll horizontal debido a sombras */
+}
+
+/* Estilos de la tarjeta principal que contiene todo el monitoreo */
+.view-dispositivos-card {
+  border-radius: 20px; /* Bordes más redondeados */
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada y vibrante */
+  background-color: #ffffff; /* Fondo blanco puro para que el contenido resalte */
+  width: 100%;
+  max-width: 1200px; /* Ancho máximo para el contenido, mejora la lectura */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 50px; /* Espacio debajo de la tarjeta para contenido inferior o si el footer está fijo */
+}
+
+.view-dispositivos-card:hover {
+  transform: translateY(-5px); /* Efecto de elevación sutil al pasar el ratón */
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25); /* Sombra más intensa al pasar el ratón */
+}
+
+/* Estilos del encabezado de la tarjeta (título y botones de control) */
+.view-dispositivos-card .card-header {
+  background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%); /* Degradado cálido y alegre */
+  border-bottom: none; /* Eliminar borde inferior */
+  padding: 2rem 2.5rem; /* Más espacio interno */
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+  gap: 20px; /* Mayor espacio entre elementos del header */
+}
+
+.view-dispositivos-card .card-title {
+  color: #fff; /* Texto blanco para contrastar con el degradado */
+  font-size: 2.2rem; /* Título más grande y llamativo */
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15); /* Sombra de texto para resaltar */
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 0; /* Asegurar que no haya margen inferior si es parte de flex */
+}
+
+.view-dispositivos-card .card-title i {
+  font-size: 2.5rem; /* Ícono más grande */
+  color: #fceabb; /* Color amarillo suave para el ícono */
+}
+
+/* Estilos para los botones de control (Actualizar, Iniciar, Detener) */
+.control-btn {
+  padding: 0.9rem 1.6rem; /* Más padding para botones más grandes */
+  font-size: 1.05rem; /* Fuente ligeramente más grande */
+  font-weight: 600;
+  border-radius: 12px; /* Bordes más redondeados */
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Espacio entre ícono y texto */
+  border-width: 2px;
+  text-transform: uppercase; /* Texto en mayúsculas */
+  letter-spacing: 0.5px; /* Espaciado entre letras */
+}
+
+/* Colores alegres y vibrantes para los botones */
+.control-btn.btn-outline-primary {
+  color: #8e24aa; /* Morado vibrante */
+  border-color: #8e24aa;
+  background-color: transparent;
+}
+.control-btn.btn-outline-primary:hover {
+  background-color: #8e24aa;
+  color: white;
+  box-shadow: 0 6px 15px rgba(142, 36, 170, 0.3);
+  transform: translateY(-3px);
+}
+
+.control-btn.btn-outline-success {
+  color: #4CAF50; /* Verde brillante */
+  border-color: #4CAF50;
+  background-color: transparent;
+}
+.control-btn.btn-outline-success:hover {
+  background-color: #4CAF50;
+  color: white;
+  box-shadow: 0 6px 15px rgba(76, 175, 80, 0.3);
+  transform: translateY(-3px);
+}
+
+.control-btn.btn-outline-danger {
+  color: #e53935; /* Rojo intenso */
+  border-color: #e53935;
+  background-color: transparent;
+}
+.control-btn.btn-outline-danger:hover {
+  background-color: #e53935;
+  color: white;
+  box-shadow: 0 6px 15px rgba(229, 57, 53, 0.3);
+  transform: translateY(-3px);
+}
+
+.control-btn:disabled {
+  opacity: 0.5; /* Más opaco cuando deshabilitado */
+  cursor: not-allowed;
+  transform: none; /* Eliminar transform en deshabilitado */
+  box-shadow: none; /* Eliminar sombra en deshabilitado */
+}
+
+/* Estilos del cuerpo de la tarjeta - solo padding, no afecta la cuadrícula interna */
+.view-dispositivos-card .card-body {
+  padding: 3rem 2.5rem; /* Más espacio interno para el contenido general */
+}
+
+/* Estilos para el mensaje de "No hay dispositivos" */
+.alert-info {
+  background: linear-gradient(45deg, #c8e6c9 0%, #bbdefb 100%); /* Degradado suave y optimista */
+  color: #2e7d32; /* Verde oscuro para el texto principal */
+  border: none; /* Sin borde */
+  border-radius: 15px; /* Más redondeado */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem; /* Más padding */
+  margin-top: 2rem; /* Espacio superior para el mensaje de alerta */
+}
+
+.alert-info .alert-title {
+  color: #1b5e20; /* Título verde más oscuro */
+  font-weight: 700;
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.alert-info .alert-title i {
+  font-size: 2rem;
+  color: #388e3c; /* Ícono verde brillante */
+}
+
+.alert-info p {
+    font-size: 1.1rem;
+    color: #424242;
+    line-height: 1.6;
+}
+
+.alert-info .btn-primary {
+    background-color: #6a1b9a; /* Morado vibrante para el botón */
+    border-color: #6a1b9a;
+    font-weight: 600;
+    padding: 0.9rem 1.8rem;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(106, 27, 154, 0.2);
+}
+
+.alert-info .btn-primary:hover {
+    background-color: #8e24aa; /* Morado más claro al pasar el ratón */
+    border-color: #8e24aa;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(106, 27, 154, 0.3);
+}
+
+.alert-info .btn-primary i {
+    font-size: 1.3rem;
+}
