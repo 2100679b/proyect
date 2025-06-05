@@ -14,7 +14,7 @@
           <label for="email" class="form-label">Email</label>
           <input
             id="email"
-            v-model="formData.email"
+            v-model.trim="formData.email"
             type="email"
             class="form-input"
             :class="{ loading: isLoading }"
@@ -29,28 +29,29 @@
           <label for="username" class="form-label">Usuario</label>
           <input
             id="username"
-            v-model="formData.username"
+            v-model.trim="formData.username"
             type="text"
             class="form-input"
             :class="{ loading: isLoading }"
             placeholder="Nombre de usuario"
             required
-            :disabled="isLoading"
             minlength="3"
+            :disabled="isLoading"
           />
         </div>
 
-        <!-- Campo de identificador (email o usuario para login) -->
+        <!-- Campo de identificador (solo en login) -->
         <div v-if="!isRegister" class="form-group">
           <label for="identifier" class="form-label">Usuario</label>
           <input
             id="identifier"
-            v-model="formData.identifier"
+            v-model.trim="formData.identifier"
             type="text"
             class="form-input"
             :class="{ loading: isLoading }"
             placeholder="Nombre de usuario"
             required
+            minlength="3"
             :disabled="isLoading"
           />
           <small class="form-hint">
@@ -69,12 +70,12 @@
             :class="{ loading: isLoading }"
             :placeholder="isRegister ? 'Mínimo 6 caracteres' : 'Tu contraseña'"
             required
-            :disabled="isLoading"
             :minlength="isRegister ? 6 : undefined"
+            :disabled="isLoading"
           />
         </div>
 
-        <!-- Campo de confirmar contraseña (solo en registro) -->
+        <!-- Confirmar contraseña (solo en registro) -->
         <div v-if="isRegister" class="form-group">
           <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
           <input
@@ -84,21 +85,21 @@
             class="form-input"
             :class="{ 
               loading: isLoading,
-              'error': isRegister && formData.confirmPassword && formData.password !== formData.confirmPassword
+              error: formData.confirmPassword && formData.password !== formData.confirmPassword
             }"
             placeholder="Repite tu contraseña"
             required
             :disabled="isLoading"
           />
-          <small 
-            v-if="isRegister && formData.confirmPassword && formData.password !== formData.confirmPassword" 
+          <small
+            v-if="formData.confirmPassword && formData.password !== formData.confirmPassword"
             class="field-error"
           >
             Las contraseñas no coinciden
           </small>
         </div>
 
-        <!-- Enlace para alternar entre login y registro -->
+        <!-- Alternar login/registro -->
         <a
           href="#"
           @click.prevent="toggleLoginType"
@@ -112,7 +113,6 @@
         <div v-if="errorMessage" class="error-message">
           {{ errorMessage }}
         </div>
-        
         <div v-if="successMessage" class="success-message">
           {{ successMessage }}
         </div>
@@ -139,7 +139,7 @@
         </a>
       </div>
 
-      <!-- Información de usuario de prueba -->
+      <!-- Información usuario demo -->
       <div v-if="!isRegister" class="demo-info">
         <small>Usuario de prueba: <strong>arodriguezp</strong> / Contraseña: <strong>123456</strong></small>
       </div>
@@ -148,11 +148,8 @@
 </template>
 
 <script>
-/*
-Clase para representar los servicios de datos para manejo de la sesión
-*/
 class SessionDS {
-  constructor () {
+  constructor() {
     this.usuarios = [
       {
         id: 1,
@@ -177,20 +174,17 @@ class SessionDS {
     };
   }
 
-  // Método para agregar un nuevo usuario
   add(usuario) {
     this.usuarios.push(usuario);
   }
 
-  // Método para verificar usuario y contraseña
   verify(userName, password) {
     return Promise.resolve(this.getUser(userName, password));
   }
 
-  // Método interno que busca un usuario en la lista
   getUser(userName, password) {
     const usuario = this.usuarios.find(
-      item => item.userName === userName && item.password === password
+      user => user.userName === userName && user.password === password
     );
 
     if (!usuario) {
@@ -220,7 +214,6 @@ class SessionDS {
   }
 }
 
-// Crear instancia singleton del servicio de sesión
 const sessionDS = new SessionDS();
 
 export default {
@@ -234,230 +227,305 @@ export default {
       formData: {
         email: '',
         username: '',
-        identifier: '', // Para login (nombre de usuario)
+        identifier: '',
         password: '',
         confirmPassword: ''
       }
-    }
+    };
   },
   computed: {
     isFormValid() {
-      const { email, username, identifier, password, confirmPassword } = this.formData
-      
-      // Validar contraseña
-      if (!password?.trim() || password.length < 6) return false
-      
+      const { email, username, identifier, password, confirmPassword } = this.formData;
+
+      if (!password?.trim() || password.length < 6) return false;
+
       if (this.isRegister) {
-        // Validaciones para registro
-        if (!email?.trim() || !username?.trim()) return false
-        
-        // Validar formato de email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(email.trim())) return false
-        
-        // Validar longitud mínima de usuario
-        if (username.trim().length < 3) return false
-        
-        // Validar que las contraseñas coincidan
-        if (password !== confirmPassword) return false
+        if (!email?.trim() || !username?.trim()) return false;
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.trim())) return false;
+
+        if (username.trim().length < 3) return false;
+
+        if (password !== confirmPassword) return false;
       } else {
-        // Validaciones para login
-        if (!identifier?.trim()) return false
-        
-        // El identificador debe tener al menos 3 caracteres
-        if (identifier.trim().length < 3) return false
+        if (!identifier?.trim()) return false;
+        if (identifier.trim().length < 3) return false;
       }
-      
-      return true
+
+      return true;
     }
   },
   methods: {
     toggleLoginType() {
-      this.isRegister = !this.isRegister
-      this.clearMessages()
-      this.clearForm()
+      this.isRegister = !this.isRegister;
+      this.clearMessages();
+      this.clearForm();
     },
 
     clearMessages() {
-      this.errorMessage = ''
-      this.successMessage = ''
+      this.errorMessage = '';
+      this.successMessage = '';
     },
 
     clearForm() {
       if (this.isRegister) {
-        // Al cambiar a registro, limpiar identifier
-        this.formData.identifier = ''
+        // Cambiando a registro: limpiar login-only fields
+        this.formData.identifier = '';
+        this.formData.password = '';
+        this.formData.confirmPassword = '';
+        // Mantener email y username vacíos
+        this.formData.email = '';
+        this.formData.username = '';
       } else {
-        // Al cambiar a login, limpiar email, username y confirmPassword
-        this.formData.email = ''
-        this.formData.username = ''
-        this.formData.confirmPassword = ''
+        // Cambiando a login: limpiar registro-only fields
+        this.formData.email = '';
+        this.formData.username = '';
+        this.formData.confirmPassword = '';
+        this.formData.password = '';
+        this.formData.identifier = '';
       }
     },
 
     async handleSubmit() {
-      if (!this.isFormValid) return
+      if (!this.isFormValid) return;
 
-      this.isLoading = true
-      this.clearMessages()
+      this.isLoading = true;
+      this.clearMessages();
 
       try {
         if (this.isRegister) {
-          await this.register()
+          await this.register();
         } else {
-          await this.login()
+          await this.login();
         }
       } catch (error) {
-        this.errorMessage = error.message || 'Ha ocurrido un error inesperado'
+        this.errorMessage = error.message || 'Ha ocurrido un error inesperado';
       } finally {
-        this.isLoading = false
+        this.isLoading = false;
       }
     },
 
     async login() {
       try {
-        const userName = this.formData.identifier.trim()
-        const password = this.formData.password
+        const userName = this.formData.identifier.trim();
+        const password = this.formData.password;
 
-        // Usar el servicio de sesión
-        const response = await sessionDS.verify(userName, password)
-        
+        const response = await sessionDS.verify(userName, password);
+
         if (response.mensaje.codigo === 10) {
-          // Usuario válido
-          this.successMessage = `¡Bienvenido ${response.usuario.nombre}! Redirigiendo...`
-          
+          this.successMessage = `¡Bienvenido ${response.usuario.nombre}! Redirigiendo...`;
+
           setTimeout(() => {
             this.$emit('login-success', {
               usuario: response.usuario,
-              userName: userName,
+              userName,
               timestamp: new Date().toISOString()
-            })
-            // Redirigir al dashboard si tienes Vue Router
-            this.$router.push('/menu')
-          }, 1500)
+            });
+            if (this.$router) this.$router.push('/menu');
+          }, 1500);
         } else {
-          // Credenciales incorrectas
-          throw new Error(response.mensaje.descripcion)
+          throw new Error(response.mensaje.descripcion);
         }
       } catch (error) {
-        console.error('Error de login:', error)
-        throw new Error(error.message || 'Error al iniciar sesión')
+        console.error('Error de login:', error);
+        throw new Error(error.message || 'Error al iniciar sesión');
       }
     },
 
     async register() {
       try {
-        // Simular tiempo de procesamiento
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
         const newUser = {
           id: sessionDS.usuarios.length + 1,
-          nombre: this.formData.username, // O podrías agregar un campo nombre completo
+          nombre: this.formData.username.trim(),
           userName: this.formData.username.trim(),
           password: this.formData.password,
-          roles: [1] // Rol básico por defecto
-        }
+          roles: [1]
+        };
 
-        // Verificar si el usuario ya existe
         const existingUser = sessionDS.usuarios.find(
           user => user.userName === newUser.userName
-        )
+        );
 
         if (existingUser) {
-          throw new Error('Este nombre de usuario ya está en uso')
+          throw new Error('Este nombre de usuario ya está registrado');
         }
 
-        // Agregar el nuevo usuario
-        sessionDS.add(newUser)
-        
-        this.successMessage = '¡Cuenta creada exitosamente! Cambiando a inicio de sesión...'
-        
-        // Cambiar a modo login después del registro exitoso
+        sessionDS.add(newUser);
+
+        this.successMessage = `Usuario ${newUser.userName} creado exitosamente`;
+
         setTimeout(() => {
-          this.isRegister = false
-          this.formData.email = ''
-          this.formData.username = ''
-          this.formData.password = ''
-          this.formData.confirmPassword = ''
-          this.formData.identifier = newUser.userName // Pre-llenar el usuario recién creado
-          this.successMessage = 'Ahora puedes iniciar sesión con tu usuario'
-        }, 2000)
+          this.toggleLoginType();
+        }, 2000);
       } catch (error) {
-        throw new Error(error.message || 'Error al crear la cuenta')
+        console.error('Error en registro:', error);
+        throw new Error(error.message || 'Error al registrar usuario');
       }
     },
 
     handleForgotPassword() {
-      // Aquí iría la lógica para recuperar contraseña
-      this.$emit('forgot-password-requested')
-      alert('Funcionalidad de recuperación de contraseña - Por implementar')
+      alert('Funcionalidad de recuperación de contraseña en desarrollo.');
     }
-  },
-
-  // Limpiar mensajes cuando el componente se desmonta
-  beforeUnmount() {
-    this.clearMessages()
-  },
-
-  // Limpiar mensajes cuando se cambia de ruta (si se usa Vue Router)
-  beforeRouteLeave() {
-    this.clearMessages()
   }
-}
+};
 </script>
 
 <style scoped>
-@import url('./login.css');
-
-/* Estilos adicionales para el hint */
-.form-hint {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.75rem;
-  margin-top: 4px;
-  display: block;
-  font-style: italic;
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #f7f9fc;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Estilos adicionales para mensajes de error y éxito */
-.error-message {
-  background: rgba(255, 107, 107, 0.1);
-  border: 1px solid rgba(255, 107, 107, 0.3);
-  color: #ff6b6b;
-  padding: 12px;
-  border-radius: 6px;
-  margin: 12px 0;
-  font-size: 0.875rem;
+.login-box {
+  background: #fff;
+  padding: 2rem 3rem;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
-.success-message {
-  background: rgba(76, 175, 80, 0.1);
-  border: 1px solid rgba(76, 175, 80, 0.3);
-  color: #4caf50;
-  padding: 12px;
-  border-radius: 6px;
-  margin: 12px 0;
-  font-size: 0.875rem;
-}
-
-.field-error {
-  color: #ff6b6b;
-  font-size: 0.75rem;
-  margin-top: 4px;
-  display: block;
-}
-
-/* Información de usuario de prueba */
-.demo-info {
-  margin-top: 16px;
-  padding: 8px 12px;
-  background: rgba(33, 150, 243, 0.1);
-  border: 1px solid rgba(33, 150, 243, 0.3);
-  border-radius: 6px;
-  color: rgba(255, 255, 255, 0.8);
+.login-title {
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: #2e3a59;
   text-align: center;
 }
 
-.demo-info strong {
-  color: #2196f3;
+.login-subtitle {
+  margin: 0 0 1.5rem;
+  font-size: 1rem;
+  color: #6b7a99;
+  text-align: center;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  margin-bottom: 1.1rem;
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.3rem;
+  color: #4a4a4a;
+  display: block;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.5rem 0.8rem;
+  border: 1.8px solid #b0b7ce;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.25s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3366ff;
+  box-shadow: 0 0 6px #3366ff44;
+}
+
+.form-input.loading {
+  background-color: #f0f0f0;
+  color: #999;
+}
+
+.field-error {
+  color: #d93025;
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+}
+
+.error-message {
+  background-color: #ffe6e6;
+  color: #d93025;
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.success-message {
+  background-color: #ddf4e1;
+  color: #2d7a2d;
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.submit-btn {
+  background-color: #3366ff;
+  color: #fff;
+  font-weight: 700;
+  padding: 0.8rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.25s ease;
+}
+
+.submit-btn:disabled {
+  background-color: #aac1ff;
+  cursor: not-allowed;
+}
+
+.submit-btn:not(:disabled):hover {
+  background-color: #0047d3;
+}
+
+.toggle-login-link {
+  display: block;
+  text-align: center;
+  margin: 1.25rem 0 0.8rem;
+  font-size: 0.9rem;
+  color: #3366ff;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.toggle-login-link:hover {
+  text-decoration: underline;
+}
+
+.links-container {
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.additional-link {
+  font-size: 0.9rem;
+  color: #3366ff;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.additional-link:hover {
+  text-decoration: underline;
+}
+
+.demo-info {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: #888;
+  text-align: center;
 }
 </style>
