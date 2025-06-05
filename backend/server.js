@@ -1,8 +1,14 @@
-// backend/server.js (agrega este endpoint)
-
-// Requiere bcrypt para hash de contraseñas
+const express = require('express');
+const cors = require('cors');
 const bcrypt = require('bcrypt');
+const pool = require('./db/db'); // tu conexión a la DB
 
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+// Tu endpoint de registro:
 app.post('/api/register', async (req, res) => {
   try {
     const { nombre, segundo_nombre, apellidos, usuario, contrasena } = req.body;
@@ -11,11 +17,9 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ error: 'Faltan datos obligatorios' });
     }
 
-    // Hashea la contraseña con bcrypt
     const saltRounds = 10;
     const contrasena_hash = await bcrypt.hash(contrasena, saltRounds);
 
-    // Inserta el usuario en la DB
     const query = `
       INSERT INTO usuarios (nombre, segundo_nombre, apellidos, usuario, contrasena_hash)
       VALUES ($1, $2, $3, $4, $5) RETURNING id, usuario
@@ -26,11 +30,16 @@ app.post('/api/register', async (req, res) => {
 
     res.status(201).json({ mensaje: 'Usuario registrado', usuario: result.rows[0] });
   } catch (error) {
-    if (error.code === '23505') { // error de duplicado, usuario ya existe
+    if (error.code === '23505') { // usuario duplicado
       res.status(409).json({ error: 'El usuario ya existe' });
     } else {
       console.error(error);
       res.status(500).json({ error: 'Error del servidor' });
     }
   }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });

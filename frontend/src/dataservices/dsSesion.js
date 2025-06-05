@@ -1,72 +1,86 @@
-/*
-Clase para representar los servicios de datos para manejo de la sesión
-*/
 class SessionDS {
-  constructor () {
-    this.usuarios = [
-      {
-        id: 1,
-        nombre: 'Agustin Rodriguez Ponce',
-        userName: 'arodriguezp',
-        password: '123456',
-        roles: [1, 2, 3]
-      }
-    ];
-
+  constructor() {
     this.response = {
       mensaje: {
         codigo: 40,
-        descripcion: 'Ocurrió un error en el servidor'
+        descripcion: 'Ocurrió un error en el servidor',
       },
       usuario: {
         id: 0,
         nombre: '',
         userName: '',
-        roles: [0]
-      }
+        roles: [0],
+      },
     };
   }
 
-  // Método para agregar un nuevo usuario
-  add(usuario) {
-    this.usuarios.push(usuario);
+  // Método para login real que llama al backend
+  async verify(userName, password) {
+    try {
+      const res = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario: userName, contrasena: password }),
+      });
+
+      if (!res.ok) {
+        // Error HTTP, por ejemplo 401 o 500
+        this.response.mensaje.descripcion = 'Usuario o contraseña incorrectos';
+        return this.response;
+      }
+
+      const data = await res.json();
+
+      // Aquí asumes que el backend devuelve el usuario en data.usuario
+      if (data.usuario) {
+        this.response = {
+          mensaje: {
+            codigo: 10,
+            descripcion: 'Usuario localizado',
+          },
+          usuario: data.usuario,
+        };
+      } else {
+        this.response.mensaje.descripcion = 'Usuario o contraseña incorrectos';
+      }
+
+      return this.response;
+    } catch (error) {
+      this.response.mensaje.descripcion = 'Error de conexión al servidor';
+      return this.response;
+    }
   }
 
-  // Método para verificar usuario y contraseña
-  verify(userName, password) {
-    return Promise.resolve(this.getUser(userName, password));
-  }
+  // Método para registrar usuario
+  async register(usuarioData) {
+    try {
+      const res = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(usuarioData),
+      });
 
-  // Método interno que busca un usuario en la lista
-  getUser(userName, password) {
-    const usuario = this.usuarios.find(
-      item => item.userName === userName && item.password === password
-    );
+      if (!res.ok) {
+        const errorData = await res.json();
+        this.response.mensaje.descripcion = errorData.message || 'Error al registrar usuario';
+        return this.response;
+      }
 
-    if (!usuario) {
-      this.response = {
-        mensaje: {
-          codigo: 40,
-          descripcion: 'Usuario o contraseña incorrectos'
-        },
-        usuario: {
-          id: 0,
-          nombre: '',
-          userName: '',
-          roles: [0]
-        }
-      };
-    } else {
+      const data = await res.json();
+
       this.response = {
         mensaje: {
           codigo: 10,
-          descripcion: 'Usuario localizado'
+          descripcion: 'Usuario registrado con éxito',
         },
-        usuario: usuario
+        usuario: data.usuario || {},
       };
-    }
 
-    return this.response;
+      return this.response;
+    } catch (error) {
+      this.response.mensaje.descripcion = 'Error de conexión al servidor';
+      return this.response;
+    }
   }
 }
 
