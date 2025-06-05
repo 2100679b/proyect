@@ -2,7 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import ViewLogin from '@/components/sesion/login.vue'
 import ViewRegister from '@/components/sesion/register.vue'
-
+import ViewMenu from '@/components/principal/Menu.vue'
+import RegistroDispositivo from '@/components/dispositivos/RegistroDispositivo.vue'
+import ViewDispositivos from '@/components/dispositivos/ViewDispositivos.vue'
 
 const routes = [
   {
@@ -18,8 +20,24 @@ const routes = [
     path: '/register',
     name: 'register',
     component: ViewRegister
+  },
+  {
+    path: '/menu',
+    name: 'menu',
+    component: ViewMenu,
+    children: [
+      {
+        path: 'dispositivos',
+        name: 'dispositivos',
+        component: ViewDispositivos
+      },
+      {
+        path: 'dispositivos/agregar',
+        name: 'agregar-dispositivo',
+        component: RegistroDispositivo
+      }
+    ]
   }
-
 ]
 
 const router = createRouter({
