@@ -1,18 +1,38 @@
 [build]
   command = "npm run build"
   publish = "dist"
+  functions = "functions"  # Carpeta para funciones serverless (opcional)
 
-# Configuración para Vue Router (modo history)
+# Solución definitiva para Vue Router – ¡ESENCIAL!
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Configuración básica de caché (opcional)
+# Optimización de caché
 [build.caching]
   enabled = true
+  # Precarga de dependencias
+  packages = { enabled = true }
 
-# Variables de entorno (reemplaza con tus valores)
-#[build.environment]
-#  VUE_APP_API_URL = "https://tu-api.com"
-#  VUE_APP_ENV = "production"
+# Variables de entorno CRÍTICAS (descomenta y configura según sea necesario)
+[build.environment]
+  BASE_URL = "/"  # ¡Necesario para compatibilidad con Vue Router!
+  VUE_APP_API_URL = "https://tu-api-real.com"  # Reemplaza con tu URL real
+  VUE_APP_ENV = "production"
+
+# Encabezados de seguridad (recomendado)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Configuración para aplicaciones de una sola página (SPA)
+[build.processing]
+  skip_processing = true  # Mejora los tiempos de despliegue
+
+# Configuración de funciones serverless (opcional)
+[functions]
+  node_bundler = "esbuild"  # Más rápido que Webpack
