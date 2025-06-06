@@ -1,17 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-const authMiddleware = require('../middlewares/authMiddleware'); // Esto es una función middleware
+const authMiddleware = require('../middlewares/authMiddleware');
 
-// Registro de usuario
+// Registro
 router.post('/register', authController.register);
 
-// Inicio de sesión
+// Login
 router.post('/login', authController.login);
 
-// Ruta protegida de ejemplo (usa middleware directamente)
-router.get('/perfil', authMiddleware, (req, res) => {
-  res.json({ message: 'Esta es una ruta protegida', user: req.user });
+// Ruta protegida
+router.get('/perfil', authMiddleware.authenticate, (req, res) => {
+  res.json({ message: 'Ruta protegida', user: req.user });
 });
 
 module.exports = router;

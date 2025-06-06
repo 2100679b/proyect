@@ -1,20 +1,16 @@
-const { verifyToken } = require('../config/auth');
+const jwt = require('jsonwebtoken');
 
 const authenticate = (req, res, next) => {
-  const authHeader = req.headers['authorization'] || req.headers['Authorization'];
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Acceso no autorizado. Token faltante.' });
-  }
-
-  const token = authHeader.replace('Bearer ', '').trim();
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ error: 'Acceso no autorizado' });
 
   try {
-    const decoded = verifyToken(token);
-    req.user = decoded; // Puedes usar esto en las rutas protegidas
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
     next();
-  } catch (error) {
-    return res.status(401).json({ error: 'Token inválido o expirado' });
+  } catch {
+    res.status(401).json({ error: 'Token inválido o expirado' });
   }
 };
 
-module.exports = authenticate;
+module.exports = { authenticate };

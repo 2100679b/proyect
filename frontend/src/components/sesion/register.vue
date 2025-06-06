@@ -66,11 +66,11 @@
         <a href="#" @click.prevent="goToLogin">Inicia sesión</a>
       </p>
 
-      <Transition name="fade">
+      <transition name="fade">
         <div v-if="message" :class="['form-message', messageType]">
           {{ message }}
         </div>
-      </Transition>
+      </transition>
     </div>
   </div>
 </template>
@@ -93,8 +93,8 @@ export default {
   computed: {
     isFormValid() {
       return (
-        this.form.username &&
-        this.form.email &&
+        this.form.username.trim() &&
+        this.form.email.trim() &&
         this.form.password &&
         this.form.password === this.form.confirmPassword
       );
@@ -102,45 +102,49 @@ export default {
   },
   methods: {
     async submitForm() {
-  if (!this.isFormValid) return;
+      if (!this.isFormValid) return;
 
-  this.isLoading = true;
-  this.message = '';
-  this.messageType = '';
+      this.isLoading = true;
+      this.message = '';
+      this.messageType = '';
 
-  try {
-    const response = await fetch('http://TU_BACKEND_URL/api/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        usuario: this.form.username,
-        email: this.form.email,
-        contrasena: this.form.password
-      })
-    });
+      // Reemplaza esto con tu variable de entorno o url real
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
-    const data = await response.json();
+      try {
+        const response = await fetch(`${backendUrl}/api/auth/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            usuario: this.form.username,
+            email: this.form.email,
+            contrasena: this.form.password
+          })
+        });
 
-    if (response.ok) {
-      this.message = 'Usuario registrado con éxito';
-      this.messageType = 'success';
-      this.form.username = '';
-      this.form.email = '';
-      this.form.password = '';
-      this.form.confirmPassword = '';
-    } else {
-      this.message = data.error || 'Error al registrar usuario';
-      this.messageType = 'error';
-    }
-  } catch (error) {
-    this.message = 'Error de conexión con el servidor';
-    this.messageType = 'error';
-  } finally {
-    this.isLoading = false;
-  }
-},
+        const data = await response.json();
+
+        if (response.ok) {
+          this.message = 'Usuario registrado con éxito';
+          this.messageType = 'success';
+          // Limpiar formulario
+          this.form.username = '';
+          this.form.email = '';
+          this.form.password = '';
+          this.form.confirmPassword = '';
+        } else {
+          this.message = data.error || 'Error al registrar usuario';
+          this.messageType = 'error';
+        }
+      } catch (error) {
+        this.message = 'Error de conexión con el servidor';
+        this.messageType = 'error';
+      } finally {
+        this.isLoading = false;
+      }
+    },
 
     goToLogin() {
       this.$emit('switch-view', 'login');
@@ -148,6 +152,5 @@ export default {
   }
 };
 </script>
-
 
 <style src="./register.css" scoped></style>
