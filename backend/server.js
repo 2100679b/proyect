@@ -8,13 +8,16 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Configurar CORS para permitir peticiones desde el frontend
-const allowedOrigins = [process.env.FRONTEND_URL || 'http://localhost:8080', 'https://sensational-mermaid-833fd9.netlify.app'];
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:8080',
+  'https://sensational-mermaid-833fd9.netlify.app/login',
+];
 
 app.use(cors({
-  origin: function(origin, callback) {
-    // permitir solicitudes sin origin (como Postman o curl)
-    if(!origin) return callback(null, true);
-    if(allowedOrigins.indexOf(origin) === -1){
+  origin: function (origin, callback) {
+    // Permitir solicitudes sin origin (Postman, curl, etc)
+    if (!origin) return callback(null, true);
+    if (!allowedOrigins.includes(origin)) {
       const msg = `El CORS policy no permite acceso desde el origen: ${origin}`;
       return callback(new Error(msg), false);
     }
@@ -30,7 +33,7 @@ app.use(bodyParser.json());
 // Rutas
 app.use('/api/auth', authRoutes);
 
-// Ruta prueba
+// Ruta de prueba para status
 app.get('/api/status', (req, res) => {
   res.json({
     status: 'OK',
@@ -39,7 +42,7 @@ app.get('/api/status', (req, res) => {
   });
 });
 
-// Manejo de errores global
+// Manejo global de errores
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: err.message || 'Error interno del servidor' });
