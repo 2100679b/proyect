@@ -5,24 +5,45 @@
 
       <form @submit.prevent="submitForm" class="register-form">
         <div class="input-group">
-          <label for="username">Usuario</label>
+          <label for="nombre">Nombre</label>
           <input
-            v-model="form.username"
+            v-model="form.nombre"
             type="text"
-            id="username"
+            id="nombre"
             required
-            placeholder="Tu nombre de usuario"
+            placeholder="Tu nombre"
           />
         </div>
 
         <div class="input-group">
-          <label for="email">Correo</label>
+          <label for="segundo_nombre">Segundo Nombre</label>
           <input
-            v-model="form.email"
-            type="email"
-            id="email"
+            v-model="form.segundo_nombre"
+            type="text"
+            id="segundo_nombre"
+            placeholder="Tu segundo nombre (opcional)"
+          />
+        </div>
+
+        <div class="input-group">
+          <label for="apellidos">Apellidos</label>
+          <input
+            v-model="form.apellidos"
+            type="text"
+            id="apellidos"
             required
-            placeholder="correo@ejemplo.com"
+            placeholder="Tus apellidos"
+          />
+        </div>
+
+        <div class="input-group">
+          <label for="usuario">Usuario</label>
+          <input
+            v-model="form.usuario"
+            type="text"
+            id="usuario"
+            required
+            placeholder="Tu nombre de usuario"
           />
         </div>
 
@@ -80,8 +101,10 @@ export default {
   data() {
     return {
       form: {
-        username: '',
-        email: '',
+        nombre: '',
+        segundo_nombre: '',
+        apellidos: '',
+        usuario: '',
         password: '',
         confirmPassword: ''
       },
@@ -93,8 +116,9 @@ export default {
   computed: {
     isFormValid() {
       return (
-        this.form.username.trim() &&
-        this.form.email.trim() &&
+        this.form.nombre.trim() &&
+        this.form.apellidos.trim() &&
+        this.form.usuario.trim() &&
         this.form.password &&
         this.form.password === this.form.confirmPassword
       );
@@ -108,7 +132,6 @@ export default {
       this.message = '';
       this.messageType = '';
 
-      // Reemplaza esto con tu variable de entorno o url real
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
       try {
@@ -118,8 +141,10 @@ export default {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            usuario: this.form.username,
-            email: this.form.email,
+            nombre: this.form.nombre,
+            segundo_nombre: this.form.segundo_nombre,
+            apellidos: this.form.apellidos,
+            usuario: this.form.usuario,
             contrasena: this.form.password
           })
         });
@@ -130,8 +155,10 @@ export default {
           this.message = 'Usuario registrado con éxito';
           this.messageType = 'success';
           // Limpiar formulario
-          this.form.username = '';
-          this.form.email = '';
+          this.form.nombre = '';
+          this.form.segundo_nombre = '';
+          this.form.apellidos = '';
+          this.form.usuario = '';
           this.form.password = '';
           this.form.confirmPassword = '';
         } else {
