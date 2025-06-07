@@ -1,15 +1,11 @@
 <template>
   <div class="login-container">
     <div class="login-box">
-      <!-- Título y subtítulo -->
       <h1 class="login-title">{{ isRegister ? 'Registro' : 'Iniciar Sesión' }}</h1>
-      <p class="login-subtitle">
-        {{ isRegister ? 'Crea tu cuenta' : 'Accede a tu cuenta' }}
-      </p>
+      <p class="login-subtitle">{{ isRegister ? 'Crea tu cuenta' : 'Accede a tu cuenta' }}</p>
 
-      <!-- Formulario -->
       <form @submit.prevent="handleSubmit" class="login-form">
-        <!-- Campo de email (solo en registro) -->
+        <!-- Email (registro) -->
         <div v-if="isRegister" class="form-group">
           <label for="email" class="form-label">Email</label>
           <input
@@ -17,14 +13,13 @@
             v-model="formData.email"
             type="email"
             class="form-input"
-            :class="{ loading: isLoading }"
             placeholder="tu@email.com"
             required
             :disabled="isLoading"
           />
         </div>
 
-        <!-- Campo de usuario (solo en registro) -->
+        <!-- Usuario (registro) -->
         <div v-if="isRegister" class="form-group">
           <label for="username" class="form-label">Usuario</label>
           <input
@@ -32,7 +27,6 @@
             v-model="formData.username"
             type="text"
             class="form-input"
-            :class="{ loading: isLoading }"
             placeholder="Nombre de usuario"
             required
             :disabled="isLoading"
@@ -40,25 +34,29 @@
           />
         </div>
 
-        <!-- Campo de identificador (email o usuario para login) -->
+        <!-- Identificador (login) -->
         <div v-if="!isRegister" class="form-group">
-          <label for="identifier" class="form-label">Usuario</label>
+          <label for="identifier" class="form-label">
+            {{ loginByEmail ? 'Correo electrónico' : 'Usuario' }}
+          </label>
           <input
             id="identifier"
             v-model="formData.identifier"
-            type="text"
+            :type="loginByEmail ? 'email' : 'text'"
             class="form-input"
-            :class="{ loading: isLoading }"
-            placeholder="Nombre de usuario"
+            :placeholder="loginByEmail ? 'tu@email.com' : 'Nombre de usuario'"
             required
             :disabled="isLoading"
           />
           <small class="form-hint">
-            Ingresa tu nombre de usuario
+            Ingresa tu {{ loginByEmail ? 'correo electrónico' : 'nombre de usuario' }}
           </small>
+          <a href="#" class="toggle-login-link" @click.prevent="toggleLoginMethod">
+            Usar {{ loginByEmail ? 'usuario' : 'correo electrónico' }} en su lugar
+          </a>
         </div>
 
-        <!-- Campo de contraseña -->
+        <!-- Contraseña -->
         <div class="form-group">
           <label for="password" class="form-label">Contraseña</label>
           <input
@@ -66,7 +64,6 @@
             v-model="formData.password"
             type="password"
             class="form-input"
-            :class="{ loading: isLoading }"
             :placeholder="isRegister ? 'Mínimo 6 caracteres' : 'Tu contraseña'"
             required
             :disabled="isLoading"
@@ -74,7 +71,7 @@
           />
         </div>
 
-        <!-- Campo de confirmar contraseña (solo en registro) -->
+        <!-- Confirmar contraseña (registro) -->
         <div v-if="isRegister" class="form-group">
           <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
           <input
@@ -82,64 +79,39 @@
             v-model="formData.confirmPassword"
             type="password"
             class="form-input"
-            :class="{ 
-              loading: isLoading,
-              'error': isRegister && formData.confirmPassword && formData.password !== formData.confirmPassword
-            }"
+            :class="{ error: formData.confirmPassword && formData.password !== formData.confirmPassword }"
             placeholder="Repite tu contraseña"
             required
             :disabled="isLoading"
           />
-          <small 
-            v-if="isRegister && formData.confirmPassword && formData.password !== formData.confirmPassword" 
-            class="field-error"
-          >
+          <small v-if="formData.confirmPassword && formData.password !== formData.confirmPassword" class="field-error">
             Las contraseñas no coinciden
           </small>
         </div>
 
-        <!-- Enlace para alternar entre login y registro -->
-        <a
-          href="#"
-          @click.prevent="toggleLoginType"
-          class="toggle-login-link"
-          v-if="!isLoading"
-        >
-          {{ isRegister ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate' }}
-        </a>
-
-        <!-- Mensajes de error y éxito -->
-        <div v-if="errorMessage" class="error-message">
-          {{ errorMessage }}
-        </div>
-        
-        <div v-if="successMessage" class="success-message">
-          {{ successMessage }}
+        <!-- Enlaces de alternancia -->
+        <div class="toggle-links" v-if="!isLoading">
+          <router-link v-if="!isRegister" to="/register" class="toggle-login-link">¿No tienes cuenta? Regístrate</router-link>
+          <router-link v-else to="/login" class="toggle-login-link">¿Ya tienes cuenta? Inicia sesión</router-link>
         </div>
 
-        <!-- Botón de envío -->
-        <button
-          type="submit"
-          class="submit-btn"
-          :disabled="isLoading || !isFormValid"
-        >
-          <span v-if="!isLoading">
-            {{ isRegister ? 'Crear Cuenta' : 'Iniciar Sesión' }}
-          </span>
-          <span v-else>
-            {{ isRegister ? 'Creando cuenta...' : 'Iniciando sesión...' }}
-          </span>
+        <!-- Mensajes -->
+        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+        <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
+
+        <!-- Botón -->
+        <button type="submit" class="submit-btn" :disabled="isLoading || !isFormValid">
+          <span v-if="!isLoading">{{ isRegister ? 'Crear Cuenta' : 'Iniciar Sesión' }}</span>
+          <span v-else>{{ isRegister ? 'Creando cuenta...' : 'Iniciando sesión...' }}</span>
         </button>
       </form>
 
-      <!-- Enlaces adicionales -->
+      <!-- Enlace adicional -->
       <div class="links-container">
-        <a href="#" @click.prevent="handleForgotPassword" class="additional-link">
-          ¿Olvidaste tu contraseña?
-        </a>
+        <a href="#" @click.prevent="handleForgotPassword" class="additional-link">¿Olvidaste tu contraseña?</a>
       </div>
 
-      <!-- Información de usuario de prueba -->
+      <!-- Datos de prueba -->
       <div v-if="!isRegister" class="demo-info">
         <small>Usuario de prueba: <strong>arodriguezp</strong> / Contraseña: <strong>123456</strong></small>
       </div>
@@ -148,80 +120,46 @@
 </template>
 
 <script>
-/*
-Clase para representar los servicios de datos para manejo de la sesión
-*/
 class SessionDS {
-  constructor () {
+  constructor() {
     this.usuarios = [
-      {
-        id: 1,
-        nombre: 'Agustin Rodriguez Ponce',
-        userName: 'arodriguezp',
-        password: '123456',
-        roles: [1, 2, 3]
-      }
-    ];
-
+      { id: 1, nombre: 'Agustin Rodriguez Ponce', userName: 'arodriguezp', email: 'arodriguezp@email.com', password: '123456', roles: [1, 2, 3] }
+    ]
     this.response = {
-      mensaje: {
-        codigo: 40,
-        descripcion: 'Ocurrió un error en el servidor'
-      },
-      usuario: {
-        id: 0,
-        nombre: '',
-        userName: '',
-        roles: [0]
-      }
-    };
+      mensaje: { codigo: 40, descripcion: 'Ocurrió un error' },
+      usuario: { id: 0, nombre: '', userName: '', roles: [0] }
+    }
   }
 
-  // Método para agregar un nuevo usuario
   add(usuario) {
-    this.usuarios.push(usuario);
+    this.usuarios.push(usuario)
   }
 
-  // Método para verificar usuario y contraseña
-  verify(userName, password) {
-    return Promise.resolve(this.getUser(userName, password));
+  verify(identifier, password, byEmail = false) {
+    return Promise.resolve(this.getUser(identifier, password, byEmail))
   }
 
-  // Método interno que busca un usuario en la lista
-  getUser(userName, password) {
-    const usuario = this.usuarios.find(
-      item => item.userName === userName && item.password === password
-    );
+  getUser(identifier, password, byEmail) {
+    const usuario = byEmail
+      ? this.usuarios.find(u => u.email === identifier && u.password === password)
+      : this.usuarios.find(u => u.userName === identifier && u.password === password)
 
     if (!usuario) {
       this.response = {
-        mensaje: {
-          codigo: 40,
-          descripcion: 'Usuario o contraseña incorrectos'
-        },
-        usuario: {
-          id: 0,
-          nombre: '',
-          userName: '',
-          roles: [0]
-        }
-      };
+        mensaje: { codigo: 40, descripcion: 'Usuario o contraseña incorrectos' },
+        usuario: { id: 0, nombre: '', userName: '', roles: [0] }
+      }
     } else {
       this.response = {
-        mensaje: {
-          codigo: 10,
-          descripcion: 'Usuario localizado'
-        },
-        usuario: usuario
-      };
+        mensaje: { codigo: 10, descripcion: 'Usuario localizado' },
+        usuario
+      }
     }
-
-    return this.response;
+    return this.response
   }
 }
 
-// Crear instancia singleton del servicio de sesión
-const sessionDS = new SessionDS();
+const sessionDS = new SessionDS()
 
 export default {
   name: 'Login',
@@ -231,10 +169,11 @@ export default {
       isLoading: false,
       errorMessage: '',
       successMessage: '',
+      loginByEmail: false, // Nuevo estado para elegir login por email o usuario
       formData: {
         email: '',
         username: '',
-        identifier: '', // Para login (nombre de usuario)
+        identifier: '',
         password: '',
         confirmPassword: ''
       }
@@ -243,61 +182,52 @@ export default {
   computed: {
     isFormValid() {
       const { email, username, identifier, password, confirmPassword } = this.formData
-      
-      // Validar contraseña
-      if (!password?.trim() || password.length < 6) return false
-      
+      if (!password || password.length < 6) return false
+
       if (this.isRegister) {
-        // Validaciones para registro
-        if (!email?.trim() || !username?.trim()) return false
-        
-        // Validar formato de email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(email.trim())) return false
-        
-        // Validar longitud mínima de usuario
-        if (username.trim().length < 3) return false
-        
-        // Validar que las contraseñas coincidan
-        if (password !== confirmPassword) return false
+        return emailRegex.test(email) && username.length >= 3 && password === confirmPassword
       } else {
-        // Validaciones para login
-        if (!identifier?.trim()) return false
-        
-        // El identificador debe tener al menos 3 caracteres
-        if (identifier.trim().length < 3) return false
+        if (this.loginByEmail) {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+          return emailRegex.test(identifier) && password.length >= 6
+        } else {
+          return identifier.trim().length >= 3 && password.length >= 6
+        }
       }
-      
-      return true
+    }
+  },
+  created() {
+    this.isRegister = this.$route.path === '/register'
+  },
+  watch: {
+    '$route'(to) {
+      this.isRegister = to.path === '/register'
+      this.clearMessages()
+      this.clearForm()
     }
   },
   methods: {
-    toggleLoginType() {
-      this.isRegister = !this.isRegister
-      this.clearMessages()
-      this.clearForm()
-    },
-
     clearMessages() {
       this.errorMessage = ''
       this.successMessage = ''
     },
-
     clearForm() {
-      if (this.isRegister) {
-        // Al cambiar a registro, limpiar identifier
-        this.formData.identifier = ''
-      } else {
-        // Al cambiar a login, limpiar email, username y confirmPassword
-        this.formData.email = ''
-        this.formData.username = ''
-        this.formData.confirmPassword = ''
+      this.formData = {
+        email: '',
+        username: '',
+        identifier: '',
+        password: '',
+        confirmPassword: ''
       }
     },
-
+    toggleLoginMethod() {
+      this.loginByEmail = !this.loginByEmail
+      this.formData.identifier = ''
+      this.clearMessages()
+    },
     async handleSubmit() {
       if (!this.isFormValid) return
-
       this.isLoading = true
       this.clearMessages()
 
@@ -308,156 +238,53 @@ export default {
           await this.login()
         }
       } catch (error) {
-        this.errorMessage = error.message || 'Ha ocurrido un error inesperado'
+        this.errorMessage = error.message || 'Ocurrió un error inesperado'
       } finally {
         this.isLoading = false
       }
     },
-
     async login() {
-      try {
-        const userName = this.formData.identifier.trim()
-        const password = this.formData.password
+      const identifier = this.formData.identifier.trim()
+      const password = this.formData.password
+      const response = await sessionDS.verify(identifier, password, this.loginByEmail)
 
-        // Usar el servicio de sesión
-        const response = await sessionDS.verify(userName, password)
-        
-        if (response.mensaje.codigo === 10) {
-          // Usuario válido
-          this.successMessage = `¡Bienvenido ${response.usuario.nombre}! Redirigiendo...`
-          
-          setTimeout(() => {
-            this.$emit('login-success', {
-              usuario: response.usuario,
-              userName: userName,
-              timestamp: new Date().toISOString()
-            })
-            // Redirigir al dashboard si tienes Vue Router
-            this.$router.push('/menu')
-          }, 1500)
-        } else {
-          // Credenciales incorrectas
-          throw new Error(response.mensaje.descripcion)
-        }
-      } catch (error) {
-        console.error('Error de login:', error)
-        throw new Error(error.message || 'Error al iniciar sesión')
-      }
-    },
-
-    async register() {
-      try {
-        // Simular tiempo de procesamiento
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        
-        const newUser = {
-          id: sessionDS.usuarios.length + 1,
-          nombre: this.formData.username, // O podrías agregar un campo nombre completo
-          userName: this.formData.username.trim(),
-          password: this.formData.password,
-          roles: [1] // Rol básico por defecto
-        }
-
-        // Verificar si el usuario ya existe
-        const existingUser = sessionDS.usuarios.find(
-          user => user.userName === newUser.userName
-        )
-
-        if (existingUser) {
-          throw new Error('Este nombre de usuario ya está en uso')
-        }
-
-        // Agregar el nuevo usuario
-        sessionDS.add(newUser)
-        
-        this.successMessage = '¡Cuenta creada exitosamente! Cambiando a inicio de sesión...'
-        
-        // Cambiar a modo login después del registro exitoso
+      if (response.mensaje.codigo === 10) {
+        this.successMessage = `¡Bienvenido ${response.usuario.nombre}! Redirigiendo...`
         setTimeout(() => {
-          this.isRegister = false
-          this.formData.email = ''
-          this.formData.username = ''
-          this.formData.password = ''
-          this.formData.confirmPassword = ''
-          this.formData.identifier = newUser.userName // Pre-llenar el usuario recién creado
-          this.successMessage = 'Ahora puedes iniciar sesión con tu usuario'
-        }, 2000)
-      } catch (error) {
-        throw new Error(error.message || 'Error al crear la cuenta')
+          this.$emit('login-success', {
+            usuario: response.usuario,
+            identifier,
+            timestamp: new Date().toISOString()
+          })
+          this.$router.push('/dashboard') // Redirigir
+        }, 1500)
+      } else {
+        this.errorMessage = response.mensaje.descripcion
       }
     },
+    async register() {
+      const { email, username, password } = this.formData
 
+      const usuarioNuevo = {
+        id: Date.now(),
+        nombre: username,
+        userName: username,
+        email,
+        password,
+        roles: [2] // ejemplo
+      }
+
+      sessionDS.add(usuarioNuevo)
+      this.successMessage = 'Cuenta creada con éxito. ¡Ahora puedes iniciar sesión!'
+      setTimeout(() => {
+        this.$router.push('/login')
+      }, 1500)
+    },
     handleForgotPassword() {
-      // Aquí iría la lógica para recuperar contraseña
-      this.$emit('forgot-password-requested')
-      alert('Funcionalidad de recuperación de contraseña - Por implementar')
+      this.errorMessage = 'Recuperación de contraseña no implementada aún.'
     }
-  },
-
-  // Limpiar mensajes cuando el componente se desmonta
-  beforeUnmount() {
-    this.clearMessages()
-  },
-
-  // Limpiar mensajes cuando se cambia de ruta (si se usa Vue Router)
-  beforeRouteLeave() {
-    this.clearMessages()
   }
 }
 </script>
 
-<style scoped>
-@import url('./login.css');
-
-/* Estilos adicionales para el hint */
-.form-hint {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.75rem;
-  margin-top: 4px;
-  display: block;
-  font-style: italic;
-}
-
-/* Estilos adicionales para mensajes de error y éxito */
-.error-message {
-  background: rgba(255, 107, 107, 0.1);
-  border: 1px solid rgba(255, 107, 107, 0.3);
-  color: #ff6b6b;
-  padding: 12px;
-  border-radius: 6px;
-  margin: 12px 0;
-  font-size: 0.875rem;
-}
-
-.success-message {
-  background: rgba(76, 175, 80, 0.1);
-  border: 1px solid rgba(76, 175, 80, 0.3);
-  color: #4caf50;
-  padding: 12px;
-  border-radius: 6px;
-  margin: 12px 0;
-  font-size: 0.875rem;
-}
-
-.field-error {
-  color: #ff6b6b;
-  font-size: 0.75rem;
-  margin-top: 4px;
-  display: block;
-}
-
-/* Información de usuario de prueba */
-.demo-info {
-  margin-top: 16px;
-  padding: 8px 12px;
-  background: rgba(33, 150, 243, 0.1);
-  border: 1px solid rgba(33, 150, 243, 0.3);
-  border-radius: 6px;
-  color: rgba(255, 255, 255, 0.8);
-  text-align: center;
-}
-
-.demo-info strong {
-  color: #2196f3;
-}
-</style>
+<style scoped src="./login.css"></style>

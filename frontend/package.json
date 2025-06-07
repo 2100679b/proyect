@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "p1",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,13 +9,25 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-regular-svg-icons": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/vue-fontawesome": "^3.0.8",
+    "@popperjs/core": "^2.11.8",
     "axios": "^1.9.0",
+    "body-parser": "^2.2.0",
+    "bootstrap": "^5.3.6",
+    "bootstrap-icons": "^1.13.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "pg": "^8.14.1",
     "vue": "^3.5.13",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.0.13",
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.3",
-    "vite": "^6.2.4",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.2.1",
     "vite-plugin-vue-devtools": "^7.7.2"
   }
 }

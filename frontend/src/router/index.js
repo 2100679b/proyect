@@ -1,21 +1,22 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+// Componentes de sesión
 import ViewLogin from '@/components/sesion/login.vue'
 import ViewRegister from '@/components/sesion/register.vue'
 
 const routes = [
   {
     path: '/',
-    redirect: '/login' // Redirige a /login desde la raíz
+    redirect: '/login' // Redirección desde raíz a login
   },
   {
     path: '/login',
-    name: 'login',
+    name: 'Login',
     component: ViewLogin
   },
   {
     path: '/register',
-    name: 'register',
+    name: 'Register',
     component: ViewRegister
   }
 ]
