@@ -1,0 +1,18 @@
+mi_proyecto/
+│
+├── backend/
+│   ├── db/
+│   │   └── db.js              # Conexión a PostgreSQL
+│   ├── routes/
+│   │   └── users.js           # Rutas para login/register
+│   ├── daemon.js              # "Demonio" que mantiene activa la DB (opcional)
+│   └── index.js               # Servidor principal con Express
+│
+├── frontend/
+│   ├── login.vue              # Componente de login
+│   ├── register.vue           # Componente de registro
+│   ├── index.vue              # Página principal (después del login)
+│   ├── assets/
+│   │   └── css/
+│   │       └── estilos.css    # Estilos generales
+│   └── main.js                # Lógica principal Vue
