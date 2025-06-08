@@ -216,7 +216,7 @@ export default {
     };
 
     // URL del backend
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://ec2-3-134-88-5.us-east-2.compute.amazonaws.com';
+    const apiUrl = import.meta.env.VITE_API_URL || 'ec2-3-18-33-163.us-east-2.compute.amazonaws.com';
 
     const response = await fetch(`${apiUrl}/api/register`, {
       method: 'POST',
