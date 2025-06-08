@@ -198,53 +198,50 @@ export default {
     },
 
     async handleSubmit() {
-      if (!this.validateForm()) {
-        return;
-      }
+  if (!this.validateForm()) {
+    return;
+  }
 
-      this.isSubmitting = true;
+  this.isSubmitting = true;
 
-      try {
-        // Aquí iría la lógica para enviar los datos al servidor
-        const userData = {
-          username: this.form.username,
-          nombre: this.form.nombre,
-          segundoNombre: this.form.segundoNombre || null,
-          apellidoPaterno: this.form.apellidoPaterno,
-          apellidoMaterno: this.form.apellidoMaterno,
-          email: this.form.email,
-          password: this.form.password
-        };
+  try {
+    const userData = {
+      username: this.form.username,
+      nombre: this.form.nombre,
+      segundoNombre: this.form.segundoNombre || null,
+      apellidoPaterno: this.form.apellidoPaterno,
+      apellidoMaterno: this.form.apellidoMaterno,
+      email: this.form.email,
+      password: this.form.password
+    };
 
-        // Simular llamada API
-        console.log('Datos del usuario:', userData);
-        
-        // Ejemplo de llamada API:
-        // const response = await fetch('/api/register', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(userData)
-        // });
+    // URL del backend
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://ec2-3-134-88-5.us-east-2.compute.amazonaws.com';
 
-        // if (response.ok) {
-        //   this.$router.push('/login');
-        // } else {
-        //   // Manejar errores
-        // }
+    const response = await fetch(`${apiUrl}/api/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(userData)
+    });
 
-        // Por ahora, simular éxito
-        alert('Cuenta creada exitosamente');
-        this.$router.push('/login');
-
-      } catch (error) {
-        console.error('Error al registrar usuario:', error);
-        alert('Error al crear la cuenta. Inténtalo de nuevo.');
-      } finally {
-        this.isSubmitting = false;
-      }
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.message || 'Error en el registro');
     }
+
+    alert('Cuenta creada exitosamente');
+    this.$router.push('/login');
+
+  } catch (error) {
+    console.error('Error al registrar usuario:', error);
+    alert('Error al crear la cuenta. Inténtalo de nuevo.');
+  } finally {
+    this.isSubmitting = false;
+  }
+}
+
   }
 }
 </script>
