@@ -3,22 +3,26 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-require('dotenv').config(); // Para leer variables desde .env
+require('dotenv').config(); // Leer variables desde .env
 
 const app = express();
 
 // Middleware
-app.use(cors());
+// Puedes restringir el origen para más seguridad
+app.use(cors({
+  origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5173', // Cambia si usas otro puerto u host
+  credentials: true
+}));
 app.use(express.json());
 
-// Configuración de conexión a PostgreSQL usando variables de entorno
+// Configuración de conexión a PostgreSQL
 const pool = new Pool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 5432,
-  ssl: { rejectUnauthorized: false }, // Necesario para AWS RDS
+  ssl: { rejectUnauthorized: false }, // Requiere AWS RDS
 });
 
 const JWT_SECRET = process.env.JWT_SECRET || 'clave_por_defecto';
@@ -125,5 +129,13 @@ app.get('/', (req, res) => {
   });
 });
 
-// IMPORTANTE: Exportar la aplicación en lugar de ejecutar app.listen
+// Exporta app para pruebas o servidor externo
 module.exports = app;
+
+// Ejecutar directamente este archivo
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor backend en http://localhost:${PORT}`);
+  });
+}
