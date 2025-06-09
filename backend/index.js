@@ -1,3 +1,4 @@
+// backend/index.js
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -7,28 +8,61 @@ require('dotenv').config();
 
 const app = express();
 
-// Middleware CORS
-app.use(cors({
-  origin: process.env.FRONTEND_ORIGIN || 'https://tu-app-en-netlify.netlify.app', // ⚠️ REEMPLAZA por tu URL real
-  credentials: true,
-}));
+// ============================
+// 🔧 Cargar configuración
+// ============================
+const {
+  DB_HOST,
+  DB_USER,
+  DB_PASSWORD,
+  DB_NAME,
+  DB_PORT,
+  DB_SSL,
+  FRONTEND_ORIGIN,
+  JWT_SECRET = 'clave_por_defecto',
+  NODE_ENV = 'development'
+} = process.env;
 
-// Middleware JSON
-app.use(express.json());
+const isProduction = NODE_ENV === 'production';
+const sslOption = DB_SSL === 'true' ? { rejectUnauthorized: false } : false;
 
-// Config PostgreSQL
+// ============================
+// 🗄️ Crear conexión a PostgreSQL
+// ============================
 const pool = new Pool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 5432,
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  host: DB_HOST,
+  user: DB_USER,
+  password: DB_PASSWORD,
+  database: DB_NAME,
+  port: DB_PORT || 5432,
+  ssl: sslOption
 });
 
-const JWT_SECRET = process.env.JWT_SECRET || 'clave_por_defecto';
+// Conexión de prueba
+pool.connect()
+  .then(client => {
+    console.log('✅ Conectado correctamente a PostgreSQL');
+    console.log('🌐 Host:', DB_HOST);
+    client.release();
+  })
+  .catch(err => {
+    console.error('❌ Error al conectar con PostgreSQL:');
+    console.error(err);
+    process.exit(1); // Detener ejecución si falla conexión
+  });
 
-// Ruta de registro
+// ============================
+// 🧩 Middlewares
+// ============================
+app.use(cors({
+  origin: FRONTEND_ORIGIN || 'http://localhost:5173',
+  credentials: true,
+}));
+app.use(express.json());
+
+// ============================
+// 📦 Rutas: Registro
+// ============================
 app.post('/api/register', async (req, res) => {
   const {
     username,
@@ -49,6 +83,7 @@ app.post('/api/register', async (req, res) => {
       'SELECT 1 FROM usuarios WHERE username = $1 OR correo = $2',
       [username, correo]
     );
+
     if (rows.length > 0) {
       return res.status(400).json({ message: 'Nombre de usuario o correo ya registrados' });
     }
@@ -69,7 +104,9 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// Ruta login
+// ============================
+// 🔐 Ruta login
+// ============================
 app.post('/api/login', async (req, res) => {
   const { correo, contrasena } = req.body;
 
@@ -79,12 +116,14 @@ app.post('/api/login', async (req, res) => {
 
   try {
     const { rows } = await pool.query('SELECT * FROM usuarios WHERE correo = $1', [correo]);
+
     if (rows.length === 0) {
       return res.status(400).json({ message: 'Correo no registrado' });
     }
 
     const user = rows[0];
     const validPassword = await bcrypt.compare(contrasena, user.contrasena);
+
     if (!validPassword) {
       return res.status(400).json({ message: 'Contraseña incorrecta' });
     }
@@ -116,16 +155,22 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Ruta de prueba
+// ============================
+// 🧪 Ruta de prueba
+// ============================
 app.get('/', (req, res) => {
   res.json({
-    message: 'API DBA2 funcionando correctamente',
+    message: '✅ API DBA2 funcionando correctamente',
+    entorno: NODE_ENV,
+    conectadoA: DB_HOST,
     timestamp: new Date().toISOString(),
     endpoints: ['/api/register', '/api/login'],
   });
 });
 
-// Si se ejecuta directamente
+// ============================
+// 🚀 Iniciar servidor
+// ============================
 if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, '0.0.0.0', () => {
