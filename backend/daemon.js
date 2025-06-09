@@ -1,5 +1,19 @@
 // daemon.js
-const app = require('./index'); // o './server' si tu backend empieza ahí
+let app;
+
+try {
+  app = require('./index'); // o './server' si tu backend empieza ahí
+  
+  // Verificar que app sea una aplicación Express válida
+  if (!app || typeof app.listen !== 'function') {
+    console.error('❌ Error: El archivo index.js no exporta una aplicación Express válida');
+    console.log('💡 Asegúrate de que index.js termine con: module.exports = app;');
+    process.exit(1);
+  }
+} catch (error) {
+  console.error('❌ Error al cargar la aplicación:', error.message);
+  process.exit(1);
+}
 
 // Configuración del puerto con fallback
 const PORT = process.env.PORT || 3000;
