@@ -1,16 +1,22 @@
 // services/sessionService.js
 
-const USE_BACKEND = false; // Cambia a false para usar mock
-
-import dsSesionMock from './dsSesion.mock.js'
 import axios from 'axios'
+import dsSesionMock from './dsSesion.mock.js'
+
+const USE_BACKEND = true // Cambia a false para usar el mock
 
 export const verify = async (userName, password) => {
   if (USE_BACKEND) {
-    const response = await axios.post('http://localhost:3000/api/login', {
-      userName, password
-    })
-    return response.data
+    try {
+      const response = await axios.post('http://localhost:3000/api/login', {
+        userName,
+        password
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error en la verificación con backend:', error)
+      throw error
+    }
   } else {
     return dsSesionMock.verify(userName, password)
   }
