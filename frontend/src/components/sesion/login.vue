@@ -143,22 +143,19 @@ export default {
   computed: {
     isFormValid() {
       const { email, username, identifier, password, confirmPassword } = this.formData
-      
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
       if (this.isRegister) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         return (
-          emailRegex.test(email.trim()) && 
-          username.trim().length >= 3 && 
-          password.length >= 8 && 
+          emailRegex.test(email.trim()) &&
+          username.trim().length >= 3 &&
+          password.length >= 8 &&
           password === confirmPassword
         )
       } else {
-        if (this.loginByEmail) {
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-          return emailRegex.test(identifier.trim()) && password.length > 0
-        } else {
-          return identifier.trim().length >= 3 && password.length > 0
-        }
+        return this.loginByEmail
+          ? emailRegex.test(identifier.trim()) && password.length > 0
+          : identifier.trim().length >= 3 && password.length > 0
       }
     }
   },
@@ -178,74 +175,65 @@ export default {
       this.successMessage = ''
       this.errors = {}
     },
-    
     clearForm() {
-      this.formData = {
-        email: '',
-        username: '',
-        identifier: '',
-        password: '',
-        confirmPassword: ''
+      for (const key in this.formData) {
+        this.formData[key] = ''
       }
     },
-    
     toggleLoginMethod() {
       this.loginByEmail = !this.loginByEmail
       this.formData.identifier = ''
       this.clearMessages()
     },
-    
     validateForm() {
-      this.errors = {}
-      
+      const errors = {}
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
       if (this.isRegister) {
-        // Validaciones para registro
         if (!this.formData.email.trim()) {
-          this.errors.email = 'El correo electrónico es obligatorio'
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.formData.email.trim())) {
-          this.errors.email = 'El formato del correo electrónico no es válido'
+          errors.email = 'El correo electrónico es obligatorio'
+        } else if (!emailRegex.test(this.formData.email.trim())) {
+          errors.email = 'Formato de correo no válido'
         }
-        
+
         if (!this.formData.username.trim()) {
-          this.errors.username = 'El nombre de usuario es obligatorio'
+          errors.username = 'El nombre de usuario es obligatorio'
         } else if (this.formData.username.trim().length < 3) {
-          this.errors.username = 'El nombre de usuario debe tener al menos 3 caracteres'
+          errors.username = 'Debe tener al menos 3 caracteres'
         }
-        
+
         if (!this.formData.password) {
-          this.errors.password = 'La contraseña es obligatoria'
+          errors.password = 'La contraseña es obligatoria'
         } else if (this.formData.password.length < 8) {
-          this.errors.password = 'La contraseña debe tener al menos 8 caracteres'
+          errors.password = 'Debe tener al menos 8 caracteres'
         }
-        
+
         if (!this.formData.confirmPassword) {
-          this.errors.confirmPassword = 'Debes confirmar la contraseña'
+          errors.confirmPassword = 'Confirma la contraseña'
         } else if (this.formData.password !== this.formData.confirmPassword) {
-          this.errors.confirmPassword = 'Las contraseñas no coinciden'
+          errors.confirmPassword = 'Las contraseñas no coinciden'
         }
+
       } else {
-        // Validaciones para login
         if (!this.formData.identifier.trim()) {
-          this.errors.identifier = this.loginByEmail ? 'El correo electrónico es obligatorio' : 'El nombre de usuario es obligatorio'
-        } else if (this.loginByEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.formData.identifier.trim())) {
-          this.errors.identifier = 'El formato del correo electrónico no es válido'
+          errors.identifier = this.loginByEmail ? 'El correo es obligatorio' : 'El usuario es obligatorio'
+        } else if (this.loginByEmail && !emailRegex.test(this.formData.identifier.trim())) {
+          errors.identifier = 'Formato de correo no válido'
         }
-        
+
         if (!this.formData.password) {
-          this.errors.password = 'La contraseña es obligatoria'
+          errors.password = 'La contraseña es obligatoria'
         }
       }
-      
-      return Object.keys(this.errors).length === 0
+
+      this.errors = errors
+      return Object.keys(errors).length === 0
     },
-    
     async handleSubmit() {
       this.clearMessages()
-      
-      if (!this.validateForm()) {
-        return
-      }
-      
+
+      if (!this.validateForm()) return
+
       this.isLoading = true
 
       try {
@@ -254,32 +242,27 @@ export default {
         } else {
           await this.login()
         }
-      } catch (error) {
-        this.errorMessage = error.message || 'Ocurrió un error inesperado'
+      } catch (err) {
+        this.errorMessage = err.message || 'Error inesperado'
       } finally {
         this.isLoading = false
       }
     },
-
     async register() {
-      // Simulación de registro (reemplazar por llamada real)
       await new Promise(resolve => setTimeout(resolve, 1500))
-      this.successMessage = 'Cuenta creada con éxito. Por favor, inicia sesión.'
+      this.successMessage = 'Cuenta creada con éxito. Redirigiendo...'
       this.clearForm()
-      this.isRegister = false
-      this.$router.push('/login')
+      await this.$router.push('/login')
     },
-
     async login() {
-      // Simulación de login (reemplazar por llamada real)
       await new Promise(resolve => setTimeout(resolve, 1500))
       this.successMessage = 'Inicio de sesión exitoso.'
       this.clearForm()
-      // Aquí se puede redirigir a la página principal o dashboard
+      // Aquí podrías redirigir al dashboard, por ejemplo:
+      // await this.$router.push('/dashboard')
     },
-
     handleForgotPassword() {
-      alert('Funcionalidad de recuperación de contraseña aún no implementada.')
+      alert('Funcionalidad aún no implementada.')
     }
   }
 }
