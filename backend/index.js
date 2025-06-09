@@ -6,7 +6,6 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config(); // Para leer variables desde .env
 
 const app = express();
-const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
@@ -117,7 +116,14 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Inicializa el servidor
-app.listen(port, () => {
-  console.log(`🚀 Servidor escuchando en http://localhost:${port}`);
+// Ruta de prueba
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'API DBA2 funcionando correctamente',
+    timestamp: new Date().toISOString(),
+    endpoints: ['/api/register', '/api/login']
+  });
 });
+
+// IMPORTANTE: Exportar la aplicación en lugar de ejecutar app.listen
+module.exports = app;
