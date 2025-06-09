@@ -3,31 +3,32 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-require('dotenv').config(); // Leer variables desde .env
+require('dotenv').config(); // Cargar variables de entorno
 
 const app = express();
 
-// Middleware
-// Puedes restringir el origen para más seguridad
+// Middleware CORS
 app.use(cors({
-  origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5173', // Cambia si usas otro puerto u host
-  credentials: true
+  origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
+  credentials: true,
 }));
+
+// Middleware para parsear JSON
 app.use(express.json());
 
-// Configuración de conexión a PostgreSQL
+// Configuración PostgreSQL Pool
 const pool = new Pool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 5432,
-  ssl: { rejectUnauthorized: false }, // Requiere AWS RDS
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false, // Controla SSL desde .env
 });
 
 const JWT_SECRET = process.env.JWT_SECRET || 'clave_por_defecto';
 
-// 👉 Ruta: Registro de usuario
+// Ruta Registro de usuario
 app.post('/api/register', async (req, res) => {
   const {
     username,
@@ -39,24 +40,25 @@ app.post('/api/register', async (req, res) => {
     contrasena,
   } = req.body;
 
+  // Validación básica
   if (!username || !nombre || !apellido_paterno || !apellido_materno || !correo || !contrasena) {
     return res.status(400).json({ message: 'Faltan datos obligatorios' });
   }
 
   try {
-    const existingUser = await pool.query(
-      'SELECT * FROM usuarios WHERE username = $1 OR correo = $2',
+    // Verificar si usuario o correo ya existen
+    const { rows } = await pool.query(
+      'SELECT 1 FROM usuarios WHERE username = $1 OR correo = $2',
       [username, correo]
     );
-
-    if (existingUser.rows.length > 0) {
-      return res
-        .status(400)
-        .json({ message: 'Nombre de usuario o correo ya están registrados' });
+    if (rows.length > 0) {
+      return res.status(400).json({ message: 'Nombre de usuario o correo ya están registrados' });
     }
 
+    // Hashear la contraseña
     const hashedPassword = await bcrypt.hash(contrasena, 10);
 
+    // Insertar nuevo usuario
     await pool.query(
       `INSERT INTO usuarios 
         (username, nombre, segundo_nombre, apellido_paterno, apellido_materno, correo, contrasena)
@@ -64,14 +66,14 @@ app.post('/api/register', async (req, res) => {
       [username, nombre, segundo_nombre || null, apellido_paterno, apellido_materno, correo, hashedPassword]
     );
 
-    res.json({ message: 'Usuario registrado con éxito' });
+    res.status(201).json({ message: 'Usuario registrado con éxito' });
   } catch (error) {
-    console.error('❌ Error al registrar:', error);
+    console.error('❌ Error al registrar usuario:', error);
     res.status(500).json({ message: 'Error en el servidor' });
   }
 });
 
-// 👉 Ruta: Login de usuario
+// Ruta Login de usuario
 app.post('/api/login', async (req, res) => {
   const { correo, contrasena } = req.body;
 
@@ -80,29 +82,26 @@ app.post('/api/login', async (req, res) => {
   }
 
   try {
-    const userResult = await pool.query('SELECT * FROM usuarios WHERE correo = $1', [correo]);
-
-    if (userResult.rows.length === 0) {
+    const { rows } = await pool.query('SELECT * FROM usuarios WHERE correo = $1', [correo]);
+    if (rows.length === 0) {
       return res.status(400).json({ message: 'Correo no registrado' });
     }
 
-    const user = userResult.rows[0];
+    const user = rows[0];
 
+    // Verificar contraseña
     const validPassword = await bcrypt.compare(contrasena, user.contrasena);
     if (!validPassword) {
       return res.status(400).json({ message: 'Contraseña incorrecta' });
     }
 
-    const token = jwt.sign(
-      {
-        id: user.id,
-        username: user.username,
-        nombre: user.nombre,
-        correo: user.correo,
-      },
-      JWT_SECRET,
-      { expiresIn: '1h' }
-    );
+    // Generar token JWT
+    const token = jwt.sign({
+      id: user.id,
+      username: user.username,
+      nombre: user.nombre,
+      correo: user.correo,
+    }, JWT_SECRET, { expiresIn: '1h' });
 
     res.json({
       message: 'Login exitoso',
@@ -120,19 +119,19 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Ruta de prueba
+// Ruta de prueba para verificar servidor
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'API DBA2 funcionando correctamente',
     timestamp: new Date().toISOString(),
-    endpoints: ['/api/register', '/api/login']
+    endpoints: ['/api/register', '/api/login'],
   });
 });
 
-// Exporta app para pruebas o servidor externo
+// Exportar app para tests o servidor externo
 module.exports = app;
 
-// Ejecutar directamente este archivo
+// Ejecutar servidor si se ejecuta directamente este archivo
 if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
