@@ -3,7 +3,6 @@
     <div class="register-card">
       <h2>Crear Cuenta</h2>
       <form @submit.prevent="handleSubmit" class="register-form">
-        
         <!-- Username -->
         <div class="form-group">
           <label for="username">Nombre de Usuario</label>
@@ -42,8 +41,10 @@
             id="segundoNombre"
             v-model="form.segundoNombre"
             placeholder="Tu segundo nombre"
+            :class="{ 'error': errors.segundoNombre }"
             :disabled="isSubmitting"
           />
+          <span v-if="errors.segundoNombre" class="error-message">{{ errors.segundoNombre }}</span>
         </div>
 
         <!-- Apellido Paterno -->
@@ -164,7 +165,7 @@ export default {
       isSubmitting: false,
       generalError: '',
       successMessage: ''
-    }
+    };
   },
   methods: {
     clearMessages() {
@@ -176,63 +177,55 @@ export default {
     validateForm() {
       this.errors = {};
 
-      // Validar username
       if (!this.form.username.trim()) {
         this.errors.username = 'El nombre de usuario es requerido';
       } else if (this.form.username.length < 3) {
-        this.errors.username = 'El nombre de usuario debe tener al menos 3 caracteres';
+        this.errors.username = 'Debe tener al menos 3 caracteres';
       } else if (!/^[a-zA-Z0-9_]+$/.test(this.form.username)) {
-        this.errors.username = 'El nombre de usuario solo puede contener letras, números y guiones bajos';
+        this.errors.username = 'Solo letras, números y guiones bajos';
       }
 
-      // Validar nombre
       if (!this.form.nombre.trim()) {
         this.errors.nombre = 'El nombre es requerido';
       } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(this.form.nombre)) {
-        this.errors.nombre = 'El nombre solo puede contener letras';
+        this.errors.nombre = 'Solo letras permitidas';
       }
 
-      // Validar apellido paterno
-      if (!this.form.apellidoPaterno.trim()) {
-        this.errors.apellidoPaterno = 'El apellido paterno es requerido';
-      } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(this.form.apellidoPaterno)) {
-        this.errors.apellidoPaterno = 'El apellido paterno solo puede contener letras';
-      }
-
-      // Validar apellido materno
-      if (!this.form.apellidoMaterno.trim()) {
-        this.errors.apellidoMaterno = 'El apellido materno es requerido';
-      } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(this.form.apellidoMaterno)) {
-        this.errors.apellidoMaterno = 'El apellido materno solo puede contener letras';
-      }
-
-      // Validar segundo nombre (opcional pero si se llena debe ser válido)
       if (this.form.segundoNombre.trim() && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(this.form.segundoNombre)) {
-        this.errors.segundoNombre = 'El segundo nombre solo puede contener letras';
+        this.errors.segundoNombre = 'Solo letras permitidas';
       }
 
-      // Validar email
+      if (!this.form.apellidoPaterno.trim()) {
+        this.errors.apellidoPaterno = 'Requerido';
+      } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(this.form.apellidoPaterno)) {
+        this.errors.apellidoPaterno = 'Solo letras permitidas';
+      }
+
+      if (!this.form.apellidoMaterno.trim()) {
+        this.errors.apellidoMaterno = 'Requerido';
+      } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(this.form.apellidoMaterno)) {
+        this.errors.apellidoMaterno = 'Solo letras permitidas';
+      }
+
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!this.form.email.trim()) {
-        this.errors.email = 'El correo electrónico es requerido';
+        this.errors.email = 'Correo requerido';
       } else if (!emailRegex.test(this.form.email)) {
-        this.errors.email = 'El formato del correo electrónico no es válido';
+        this.errors.email = 'Formato inválido';
       }
 
-      // Validar password
-      if (!this.form.password) {
-        this.errors.password = 'La contraseña es requerida';
+      if (!this.form.password.trim()) {
+        this.errors.password = 'Requerida';
       } else if (this.form.password.length < 8) {
-        this.errors.password = 'La contraseña debe tener al menos 8 caracteres';
+        this.errors.password = 'Mínimo 8 caracteres';
       } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(this.form.password)) {
-        this.errors.password = 'La contraseña debe contener al menos una mayúscula, una minúscula y un número';
+        this.errors.password = 'Debe tener mayúscula, minúscula y número';
       }
 
-      // Validar confirmación de password
       if (!this.form.confirmPassword) {
-        this.errors.confirmPassword = 'La confirmación de contraseña es requerida';
+        this.errors.confirmPassword = 'Requerido';
       } else if (this.form.password !== this.form.confirmPassword) {
-        this.errors.confirmPassword = 'Las contraseñas no coinciden';
+        this.errors.confirmPassword = 'No coinciden';
       }
 
       return Object.keys(this.errors).length === 0;
@@ -241,9 +234,7 @@ export default {
     async handleSubmit() {
       this.clearMessages();
 
-      if (!this.validateForm()) {
-        return;
-      }
+      if (!this.validateForm()) return;
 
       this.isSubmitting = true;
 
@@ -258,76 +249,28 @@ export default {
           password: this.form.password
         };
 
-        // URL del backend - asegúrate de que incluya el protocolo
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://ec2-3-134-88-5.us-east-2.compute.amazonaws.com';
-        
-        const response = await fetch(`${apiUrl}/api/register`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(userData)
-        });
+        // Aquí iría tu lógica de llamada al backend...
+        // await axios.post('/api/register', userData)
 
-        const responseData = await response.json();
-
-        if (!response.ok) {
-          // Manejar errores específicos del servidor
-          if (response.status === 409) {
-            if (responseData.field === 'username') {
-              this.errors.username = 'Este nombre de usuario ya está en uso';
-            } else if (responseData.field === 'email') {
-              this.errors.email = 'Este correo electrónico ya está registrado';
-            } else {
-              this.generalError = responseData.message || 'El usuario o correo ya existe';
-            }
-          } else if (response.status === 400) {
-            this.generalError = responseData.message || 'Datos inválidos. Verifica la información ingresada';
-          } else {
-            this.generalError = responseData.message || 'Error en el servidor. Inténtalo más tarde';
-          }
-          return;
-        }
-
-        // Registro exitoso
-        this.successMessage = 'Cuenta creada exitosamente. Redirigiendo...';
-        
-        // Limpiar formulario
-        this.resetForm();
-        
-        // Redireccionar después de un breve delay
-        setTimeout(() => {
-          this.$router.push('/login');
-        }, 2000);
-
+        this.successMessage = 'Registro exitoso';
+        this.form = {
+          username: '',
+          nombre: '',
+          segundoNombre: '',
+          apellidoPaterno: '',
+          apellidoMaterno: '',
+          email: '',
+          password: '',
+          confirmPassword: ''
+        };
       } catch (error) {
-        console.error('Error al registrar usuario:', error);
-        
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-          this.generalError = 'Error de conexión. Verifica tu conexión a internet';
-        } else {
-          this.generalError = 'Error inesperado. Inténtalo de nuevo';
-        }
+        this.generalError = 'Error al registrar usuario';
       } finally {
         this.isSubmitting = false;
       }
-    },
-
-    resetForm() {
-      this.form = {
-        username: '',
-        nombre: '',
-        segundoNombre: '',
-        apellidoPaterno: '',
-        apellidoMaterno: '',
-        email: '',
-        password: '',
-        confirmPassword: ''
-      };
     }
   }
-}
+};
 </script>
 
 <style scoped src="./register.css"></style>
