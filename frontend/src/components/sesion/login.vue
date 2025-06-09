@@ -7,10 +7,10 @@
       <form @submit.prevent="handleSubmit" class="login-form">
         <!-- Email (registro) -->
         <div v-if="isRegister" class="form-group">
-          <label for="email" class="form-label">Email</label>
+          <label for="email" class="form-label">Correo electrónico</label>
           <input
             id="email"
-            v-model="formData.email"
+            v-model.trim="formData.email"
             type="email"
             class="form-input"
             :class="{ 'error': errors.email }"
@@ -26,14 +26,14 @@
           <label for="username" class="form-label">Usuario</label>
           <input
             id="username"
-            v-model="formData.username"
+            v-model.trim="formData.username"
             type="text"
             class="form-input"
             :class="{ 'error': errors.username }"
             placeholder="Nombre de usuario"
             required
-            :disabled="isLoading"
             minlength="3"
+            :disabled="isLoading"
           />
           <span v-if="errors.username" class="field-error">{{ errors.username }}</span>
         </div>
@@ -45,7 +45,7 @@
           </label>
           <input
             id="identifier"
-            v-model="formData.identifier"
+            v-model.trim="formData.identifier"
             :type="loginByEmail ? 'email' : 'text'"
             class="form-input"
             :class="{ 'error': errors.identifier }"
@@ -81,7 +81,7 @@
 
         <!-- Confirmar contraseña (registro) -->
         <div v-if="isRegister" class="form-group">
-          <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
+          <label for="confirmPassword" class="form-label">Confirmar contraseña</label>
           <input
             id="confirmPassword"
             v-model="formData.confirmPassword"
@@ -107,7 +107,7 @@
 
         <!-- Botón -->
         <button type="submit" class="submit-btn" :disabled="isLoading || !isFormValid">
-          <span v-if="!isLoading">{{ isRegister ? 'Crear Cuenta' : 'Iniciar Sesión' }}</span>
+          <span v-if="!isLoading">{{ isRegister ? 'Crear cuenta' : 'Iniciar sesión' }}</span>
           <span v-else>{{ isRegister ? 'Creando cuenta...' : 'Iniciando sesión...' }}</span>
         </button>
       </form>
@@ -146,16 +146,18 @@ export default {
       
       if (this.isRegister) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        return emailRegex.test(email) && 
-               username.length >= 3 && 
-               password.length >= 8 && 
-               password === confirmPassword
+        return (
+          emailRegex.test(email.trim()) && 
+          username.trim().length >= 3 && 
+          password.length >= 8 && 
+          password === confirmPassword
+        )
       } else {
         if (this.loginByEmail) {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-          return emailRegex.test(identifier) && password.length >= 1
+          return emailRegex.test(identifier.trim()) && password.length > 0
         } else {
-          return identifier.trim().length >= 3 && password.length >= 1
+          return identifier.trim().length >= 3 && password.length > 0
         }
       }
     }
@@ -199,38 +201,38 @@ export default {
       if (this.isRegister) {
         // Validaciones para registro
         if (!this.formData.email.trim()) {
-          this.errors.email = 'El correo electrónico es requerido'
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.formData.email)) {
+          this.errors.email = 'El correo electrónico es obligatorio'
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.formData.email.trim())) {
           this.errors.email = 'El formato del correo electrónico no es válido'
         }
         
         if (!this.formData.username.trim()) {
-          this.errors.username = 'El nombre de usuario es requerido'
-        } else if (this.formData.username.length < 3) {
+          this.errors.username = 'El nombre de usuario es obligatorio'
+        } else if (this.formData.username.trim().length < 3) {
           this.errors.username = 'El nombre de usuario debe tener al menos 3 caracteres'
         }
         
         if (!this.formData.password) {
-          this.errors.password = 'La contraseña es requerida'
+          this.errors.password = 'La contraseña es obligatoria'
         } else if (this.formData.password.length < 8) {
           this.errors.password = 'La contraseña debe tener al menos 8 caracteres'
         }
         
         if (!this.formData.confirmPassword) {
-          this.errors.confirmPassword = 'La confirmación de contraseña es requerida'
+          this.errors.confirmPassword = 'Debes confirmar la contraseña'
         } else if (this.formData.password !== this.formData.confirmPassword) {
           this.errors.confirmPassword = 'Las contraseñas no coinciden'
         }
       } else {
         // Validaciones para login
         if (!this.formData.identifier.trim()) {
-          this.errors.identifier = this.loginByEmail ? 'El correo electrónico es requerido' : 'El nombre de usuario es requerido'
-        } else if (this.loginByEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.formData.identifier)) {
+          this.errors.identifier = this.loginByEmail ? 'El correo electrónico es obligatorio' : 'El nombre de usuario es obligatorio'
+        } else if (this.loginByEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.formData.identifier.trim())) {
           this.errors.identifier = 'El formato del correo electrónico no es válido'
         }
         
         if (!this.formData.password) {
-          this.errors.password = 'La contraseña es requerida'
+          this.errors.password = 'La contraseña es obligatoria'
         }
       }
       
@@ -253,136 +255,31 @@ export default {
           await this.login()
         }
       } catch (error) {
-        console.error('Error:', error)
         this.errorMessage = error.message || 'Ocurrió un error inesperado'
       } finally {
         this.isLoading = false
       }
     },
-    
-    async login() {
-      try {
-        const loginData = {
-          identifier: this.formData.identifier.trim(),
-          password: this.formData.password,
-          loginByEmail: this.loginByEmail
-        }
 
-        // URL del backend
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://ec2-3-134-88-5.us-east-2.compute.amazonaws.com'
-        
-        const response = await fetch(`${apiUrl}/api/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(loginData)
-        })
-
-        const responseData = await response.json()
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            this.errorMessage = 'Usuario o contraseña incorrectos'
-          } else if (response.status === 404) {
-            this.errorMessage = 'Usuario no encontrado'
-          } else {
-            this.errorMessage = responseData.message || 'Error en el servidor'
-          }
-          return
-        }
-
-        // Login exitoso
-        this.successMessage = `¡Bienvenido ${responseData.user.nombre}! Redirigiendo...`
-        
-        // Guardar datos del usuario si es necesario
-        if (responseData.token) {
-          localStorage.setItem('authToken', responseData.token)
-        }
-        localStorage.setItem('userData', JSON.stringify(responseData.user))
-        
-        // Emitir evento de login exitoso
-        this.$emit('login-success', {
-          usuario: responseData.user,
-          token: responseData.token,
-          timestamp: new Date().toISOString()
-        })
-        
-        // Redireccionar después de un breve delay
-        setTimeout(() => {
-          this.$router.push('/dashboard')
-        }, 1500)
-        
-      } catch (error) {
-        console.error('Error en login:', error)
-        
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-          this.errorMessage = 'Error de conexión. Verifica tu conexión a internet'
-        } else {
-          this.errorMessage = 'Error inesperado durante el login'
-        }
-      }
-    },
-    
     async register() {
-      try {
-        const userData = {
-          username: this.formData.username.trim(),
-          email: this.formData.email.trim().toLowerCase(),
-          password: this.formData.password
-        }
-
-        // URL del backend
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://ec2-3-134-88-5.us-east-2.compute.amazonaws.com'
-        
-        const response = await fetch(`${apiUrl}/api/register`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(userData)
-        })
-
-        const responseData = await response.json()
-
-        if (!response.ok) {
-          if (response.status === 409) {
-            if (responseData.field === 'username') {
-              this.errors.username = 'Este nombre de usuario ya está en uso'
-            } else if (responseData.field === 'email') {
-              this.errors.email = 'Este correo electrónico ya está registrado'
-            } else {
-              this.errorMessage = responseData.message || 'El usuario o correo ya existe'
-            }
-          } else {
-            this.errorMessage = responseData.message || 'Error en el servidor'
-          }
-          return
-        }
-
-        // Registro exitoso
-        this.successMessage = 'Cuenta creada con éxito. ¡Ahora puedes iniciar sesión!'
-        this.clearForm()
-        
-        setTimeout(() => {
-          this.$router.push('/login')
-        }, 1500)
-        
-      } catch (error) {
-        console.error('Error en registro:', error)
-        
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-          this.errorMessage = 'Error de conexión. Verifica tu conexión a internet'
-        } else {
-          this.errorMessage = 'Error inesperado durante el registro'
-        }
-      }
+      // Simulación de registro (reemplazar por llamada real)
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      this.successMessage = 'Cuenta creada con éxito. Por favor, inicia sesión.'
+      this.clearForm()
+      this.isRegister = false
+      this.$router.push('/login')
     },
-    
+
+    async login() {
+      // Simulación de login (reemplazar por llamada real)
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      this.successMessage = 'Inicio de sesión exitoso.'
+      this.clearForm()
+      // Aquí se puede redirigir a la página principal o dashboard
+    },
+
     handleForgotPassword() {
-      this.errorMessage = 'Funcionalidad de recuperación de contraseña próximamente.'
+      alert('Funcionalidad de recuperación de contraseña aún no implementada.')
     }
   }
 }
