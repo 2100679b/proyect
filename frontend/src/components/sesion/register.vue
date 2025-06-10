@@ -231,7 +231,7 @@ export default {
           contrasena: this.form.password
         };
 
-        const res = await axios.post('https://18.119.167.171:3000/api/register', userData);
+        const res = await axios.post('/api/register', userData);
 
         if (res.status >= 200 && res.status < 300 && res.data.message?.includes('éxito')) {
           this.successMessage = 'Usuario registrado con éxito. ¡Ya puedes iniciar sesión!';
