@@ -55,8 +55,17 @@ pool.connect()
 // 🧩 Middlewares
 // ============================
 app.use(cors({
-  origin: FRONTEND_ORIGIN || 'http://localhost:5173',
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000', 
+    'http://localhost:8080',
+    'https://demodba2.netlify.app',
+    'https://demodba2.netlify.app/login',
+    'https://demodba2.netlify.app/register'
+  ],
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
