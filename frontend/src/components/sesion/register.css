@@ -1,4 +1,4 @@
-/* register.css */
+/* register.css - Adaptado para Vue.js */
 
 /* Reset básico para el contenedor */
 * {
@@ -144,6 +144,13 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
+.form-group input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.02);
+}
+
 /* Mensajes de error de campo */
 .error-message {
   color: #ff4757;
@@ -152,6 +159,34 @@
   display: block;
   opacity: 0.9;
   animation: errorSlide 0.3s ease-out;
+}
+
+/* Mensaje de error general */
+.general-error {
+  background: rgba(255, 71, 87, 0.1);
+  border: 1px solid rgba(255, 71, 87, 0.3);
+  border-radius: 10px;
+  color: #ff4757;
+  padding: 12px 16px;
+  margin: 15px 0;
+  font-size: 0.9rem;
+  text-align: center;
+  animation: errorSlide 0.3s ease-out;
+  backdrop-filter: blur(5px);
+}
+
+/* Mensaje de éxito */
+.success-message {
+  background: rgba(4, 251, 107, 0.1);
+  border: 1px solid rgba(4, 251, 107, 0.3);
+  border-radius: 10px;
+  color: #04fb6b;
+  padding: 12px 16px;
+  margin: 15px 0;
+  font-size: 0.9rem;
+  text-align: center;
+  animation: successSlide 0.3s ease-out;
+  backdrop-filter: blur(5px);
 }
 
 /* Botón de registro */
@@ -266,9 +301,37 @@
   }
 }
 
+@keyframes successSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes spin {
   0% { transform: translateY(-50%) rotate(0deg); }
   100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* Mejoras para inputs con validación en tiempo real */
+.form-group input:valid:not(:placeholder-shown) {
+  border-color: #04fb6b;
+  background: rgba(4, 251, 107, 0.05);
+}
+
+.form-group input:invalid:not(:placeholder-shown):not(:focus) {
+  border-color: #ff4757;
+  background: rgba(255, 71, 87, 0.05);
+}
+
+/* Transiciones suaves para los mensajes */
+.general-error,
+.success-message {
+  transition: all 0.3s ease-in-out;
 }
 
 /* Responsive Design */
@@ -299,6 +362,12 @@
   .register-btn {
     padding: 13px 25px;
     font-size: 0.95rem;
+  }
+  
+  .general-error,
+  .success-message {
+    padding: 10px 14px;
+    font-size: 0.85rem;
   }
 }
 
@@ -341,6 +410,13 @@
   .error-message {
     font-size: 0.75rem;
   }
+  
+  .general-error,
+  .success-message {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    margin: 12px 0;
+  }
 }
 
 @media (max-width: 320px) {
@@ -371,6 +447,12 @@
   .error-message {
     font-size: 0.7rem;
   }
+  
+  .general-error,
+  .success-message {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
 }
 
 /* Mejoras adicionales para formularios largos */
@@ -399,4 +481,46 @@
   .register-card h2 {
     margin-bottom: 15px;
   }
+  
+  .general-error,
+  .success-message {
+    margin: 8px 0;
+  }
+}
+
+/* Efectos adicionales para mejorar la experiencia */
+.register-form {
+  animation: formFadeIn 0.5s ease-out;
+}
+
+@keyframes formFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mejora para el botón en estado de carga */
+.register-btn:disabled:not(.loading) {
+  transform: none;
+}
+
+.register-btn:disabled.loading {
+  border-color: #04fb6b;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Estilo para router-link en el login-link */
+.login-link a[href] {
+  display: inline-block;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.login-link a[href]:hover {
+  transform: translateY(-1px);
+  text-shadow: 0 2px 4px rgba(4, 251, 107, 0.3);
 }
