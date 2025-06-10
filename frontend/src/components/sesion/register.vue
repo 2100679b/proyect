@@ -241,33 +241,61 @@ export default {
         const userData = {
           username: this.form.username,
           nombre: this.form.nombre,
-          segundoNombre: this.form.segundoNombre || null,
-          apellidoPaterno: this.form.apellidoPaterno,
-          apellidoMaterno: this.form.apellidoMaterno,
+          segundo_nombre: this.form.segundoNombre || null,
+          apellido_paterno: this.form.apellidoPaterno,
+          apellido_materno: this.form.apellidoMaterno,
           correo: this.form.email.toLowerCase(),
           contrasena: this.form.password
         };
 
         const res = await axios.post('http://18.119.167.171:3000/api/register', userData);
 
-        if (res.data && res.data.success) {
-          this.successMessage = 'Usuario registrado con éxito. Revisa tu correo.';
-          this.form = {
-            username: '',
-            nombre: '',
-            segundoNombre: '',
-            apellidoPaterno: '',
-            apellidoMaterno: '',
-            email: '',
-            password: '',
-            confirmPassword: ''
-          };
+        // Verificar si la respuesta fue exitosa (status 200-299)
+        if (res.status >= 200 && res.status < 300) {
+          // Verificar si el mensaje indica éxito
+          if (res.data.message && res.data.message.includes('éxito')) {
+            this.successMessage = 'Usuario registrado con éxito. ¡Ya puedes iniciar sesión!';
+            // Limpiar el formulario
+            this.form = {
+              username: '',
+              nombre: '',
+              segundoNombre: '',
+              apellidoPaterno: '',
+              apellidoMaterno: '',
+              email: '',
+              password: '',
+              confirmPassword: ''
+            };
+            
+            // Opcional: Redirigir al login después de 2 segundos
+            setTimeout(() => {
+              this.$router.push('/login');
+            }, 2000);
+          } else {
+            this.generalError = res.data.message || 'Ocurrió un error al registrar.';
+          }
         } else {
-          this.generalError = res.data.message || 'Ocurrió un error al registrar.';
+          this.generalError = res.data.message || 'Error en el servidor.';
         }
       } catch (err) {
-        this.generalError =
-          err.response?.data?.message || 'Error del servidor o conexión.';
+        console.error('Error en registro:', err);
+        
+        if (err.response) {
+          // Error del servidor con respuesta
+          if (err.response.status === 409) {
+            this.generalError = 'El usuario o correo ya existe.';
+          } else if (err.response.status === 400) {
+            this.generalError = 'Datos inválidos. Verifica la información.';
+          } else {
+            this.generalError = err.response.data?.message || 'Error del servidor.';
+          }
+        } else if (err.request) {
+          // Error de conexión
+          this.generalError = 'Error de conexión. Verifica tu internet.';
+        } else {
+          // Otro tipo de error
+          this.generalError = 'Ocurrió un error inesperado.';
+        }
       } finally {
         this.isSubmitting = false;
       }
