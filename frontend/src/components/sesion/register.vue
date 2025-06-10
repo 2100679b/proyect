@@ -11,10 +11,10 @@
             type="text" 
             id="username"
             v-model.trim="form.username"
-            required
             :class="{ 'error': errors.username }"
             placeholder="Ingresa tu nombre de usuario"
             :disabled="isSubmitting"
+            required
           />
           <span v-if="errors.username" class="error-message">{{ errors.username }}</span>
         </div>
@@ -26,10 +26,10 @@
             type="text" 
             id="nombre"
             v-model.trim="form.nombre"
-            required
             :class="{ 'error': errors.nombre }"
             placeholder="Tu primer nombre"
             :disabled="isSubmitting"
+            required
           />
           <span v-if="errors.nombre" class="error-message">{{ errors.nombre }}</span>
         </div>
@@ -41,8 +41,8 @@
             type="text" 
             id="segundoNombre"
             v-model.trim="form.segundoNombre"
-            placeholder="Tu segundo nombre"
             :class="{ 'error': errors.segundoNombre }"
+            placeholder="Tu segundo nombre"
             :disabled="isSubmitting"
           />
           <span v-if="errors.segundoNombre" class="error-message">{{ errors.segundoNombre }}</span>
@@ -55,10 +55,10 @@
             type="text" 
             id="apellidoPaterno"
             v-model.trim="form.apellidoPaterno"
-            required
             :class="{ 'error': errors.apellidoPaterno }"
             placeholder="Tu apellido paterno"
             :disabled="isSubmitting"
+            required
           />
           <span v-if="errors.apellidoPaterno" class="error-message">{{ errors.apellidoPaterno }}</span>
         </div>
@@ -70,10 +70,10 @@
             type="text" 
             id="apellidoMaterno"
             v-model.trim="form.apellidoMaterno"
-            required
             :class="{ 'error': errors.apellidoMaterno }"
             placeholder="Tu apellido materno"
             :disabled="isSubmitting"
+            required
           />
           <span v-if="errors.apellidoMaterno" class="error-message">{{ errors.apellidoMaterno }}</span>
         </div>
@@ -85,10 +85,10 @@
             type="email" 
             id="email"
             v-model.trim="form.email"
-            required
             :class="{ 'error': errors.email }"
             placeholder="ejemplo@correo.com"
             :disabled="isSubmitting"
+            required
           />
           <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
         </div>
@@ -100,10 +100,10 @@
             type="password" 
             id="password"
             v-model="form.password"
-            required
             :class="{ 'error': errors.password }"
             placeholder="Mínimo 8 caracteres"
             :disabled="isSubmitting"
+            required
           />
           <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
         </div>
@@ -115,10 +115,10 @@
             type="password" 
             id="confirmPassword"
             v-model="form.confirmPassword"
-            required
             :class="{ 'error': errors.confirmPassword }"
             placeholder="Repite tu contraseña"
             :disabled="isSubmitting"
+            required
           />
           <span v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</span>
         </div>
@@ -173,57 +173,40 @@ export default {
     },
 
     validateForm() {
-      this.errors = {};
       const letras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      this.errors = {};
 
-      if (!this.form.username) {
-        this.errors.username = 'El nombre de usuario es requerido';
-      } else if (this.form.username.length < 3) {
-        this.errors.username = 'Debe tener al menos 3 caracteres';
-      } else if (!/^[a-zA-Z0-9_]+$/.test(this.form.username)) {
-        this.errors.username = 'Solo letras, números y guiones bajos';
+      // Validaciones básicas
+      if (!this.form.username || this.form.username.length < 3 || !/^[a-zA-Z0-9_]+$/.test(this.form.username)) {
+        this.errors.username = 'El nombre debe tener al menos 3 caracteres y solo contener letras, números y guiones bajos';
       }
 
-      if (!this.form.nombre) {
-        this.errors.nombre = 'El nombre es requerido';
-      } else if (!letras.test(this.form.nombre)) {
-        this.errors.nombre = 'Solo letras permitidas';
+      if (!this.form.nombre || !letras.test(this.form.nombre)) {
+        this.errors.nombre = 'El nombre es requerido y solo puede contener letras';
       }
 
       if (this.form.segundoNombre && !letras.test(this.form.segundoNombre)) {
         this.errors.segundoNombre = 'Solo letras permitidas';
       }
 
-      if (!this.form.apellidoPaterno) {
-        this.errors.apellidoPaterno = 'El apellido paterno es requerido';
-      } else if (!letras.test(this.form.apellidoPaterno)) {
-        this.errors.apellidoPaterno = 'Solo letras permitidas';
+      if (!this.form.apellidoPaterno || !letras.test(this.form.apellidoPaterno)) {
+        this.errors.apellidoPaterno = 'El apellido paterno es requerido y solo puede contener letras';
       }
 
-      if (!this.form.apellidoMaterno) {
-        this.errors.apellidoMaterno = 'El apellido materno es requerido';
-      } else if (!letras.test(this.form.apellidoMaterno)) {
-        this.errors.apellidoMaterno = 'Solo letras permitidas';
+      if (!this.form.apellidoMaterno || !letras.test(this.form.apellidoMaterno)) {
+        this.errors.apellidoMaterno = 'El apellido materno es requerido y solo puede contener letras';
       }
 
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!this.form.email) {
-        this.errors.email = 'Correo requerido';
-      } else if (!emailRegex.test(this.form.email)) {
-        this.errors.email = 'Formato de correo inválido';
+      if (!this.form.email || !emailRegex.test(this.form.email)) {
+        this.errors.email = 'Correo requerido y debe tener formato válido';
       }
 
-      if (!this.form.password) {
-        this.errors.password = 'Contraseña requerida';
-      } else if (this.form.password.length < 8) {
-        this.errors.password = 'Mínimo 8 caracteres';
-      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(this.form.password)) {
-        this.errors.password = 'Debe incluir mayúscula, minúscula y número';
+      if (!this.form.password || this.form.password.length < 8 || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(this.form.password)) {
+        this.errors.password = 'La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, minúscula y número';
       }
 
-      if (!this.form.confirmPassword) {
-        this.errors.confirmPassword = 'Confirmación requerida';
-      } else if (this.form.password !== this.form.confirmPassword) {
+      if (!this.form.confirmPassword || this.form.password !== this.form.confirmPassword) {
         this.errors.confirmPassword = 'Las contraseñas no coinciden';
       }
 
@@ -239,62 +222,45 @@ export default {
 
       try {
         const userData = {
-          username: this.form.username,
-          nombre: this.form.nombre,
-          segundo_nombre: this.form.segundoNombre || null,
-          apellido_paterno: this.form.apellidoPaterno,
-          apellido_materno: this.form.apellidoMaterno,
-          correo: this.form.email.toLowerCase(),
+          username: this.form.username.trim(),
+          nombre: this.form.nombre.trim(),
+          segundo_nombre: this.form.segundoNombre?.trim() || null,
+          apellido_paterno: this.form.apellidoPaterno.trim(),
+          apellido_materno: this.form.apellidoMaterno.trim(),
+          correo: this.form.email.trim().toLowerCase(),
           contrasena: this.form.password
         };
 
-        const res = await axios.post('http://18.119.167.171:3000/api/register', userData);
+        const res = await axios.post('https://18.119.167.171:3000/api/register', userData);
 
-        // Verificar si la respuesta fue exitosa (status 200-299)
-        if (res.status >= 200 && res.status < 300) {
-          // Verificar si el mensaje indica éxito
-          if (res.data.message && res.data.message.includes('éxito')) {
-            this.successMessage = 'Usuario registrado con éxito. ¡Ya puedes iniciar sesión!';
-            // Limpiar el formulario
-            this.form = {
-              username: '',
-              nombre: '',
-              segundoNombre: '',
-              apellidoPaterno: '',
-              apellidoMaterno: '',
-              email: '',
-              password: '',
-              confirmPassword: ''
-            };
-            
-            // Opcional: Redirigir al login después de 2 segundos
-            setTimeout(() => {
-              this.$router.push('/login');
-            }, 2000);
-          } else {
-            this.generalError = res.data.message || 'Ocurrió un error al registrar.';
-          }
+        if (res.status >= 200 && res.status < 300 && res.data.message?.includes('éxito')) {
+          this.successMessage = 'Usuario registrado con éxito. ¡Ya puedes iniciar sesión!';
+          this.form = {
+            username: '',
+            nombre: '',
+            segundoNombre: '',
+            apellidoPaterno: '',
+            apellidoMaterno: '',
+            email: '',
+            password: '',
+            confirmPassword: ''
+          };
+          setTimeout(() => this.$router.push('/login'), 2000);
         } else {
-          this.generalError = res.data.message || 'Error en el servidor.';
+          this.generalError = res.data.message || 'Ocurrió un error al registrar.';
         }
       } catch (err) {
         console.error('Error en registro:', err);
-        
         if (err.response) {
-          // Error del servidor con respuesta
-          if (err.response.status === 409) {
-            this.generalError = 'El usuario o correo ya existe.';
-          } else if (err.response.status === 400) {
-            this.generalError = 'Datos inválidos. Verifica la información.';
-          } else {
-            this.generalError = err.response.data?.message || 'Error del servidor.';
-          }
+          const status = err.response.status;
+          this.generalError =
+            status === 409 ? 'El usuario o correo ya existe.' :
+            status === 400 ? 'Datos inválidos. Verifica la información.' :
+            err.response.data?.message || 'Error del servidor.';
         } else if (err.request) {
-          // Error de conexión
           this.generalError = 'Error de conexión. Verifica tu internet.';
         } else {
-          // Otro tipo de error
-          this.generalError = 'Ocurrió un error inesperado.';
+          this.generalError = 'Error desconocido. Intenta nuevamente.';
         }
       } finally {
         this.isSubmitting = false;
@@ -303,5 +269,6 @@ export default {
   }
 };
 </script>
+
 
 <style scoped src="./register.css"></style>
