@@ -254,13 +254,31 @@ export default {
       this.clearForm()
       await this.$router.push('/login')
     },
-    async login() {
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      this.successMessage = 'Inicio de sesión exitoso.'
-      this.clearForm()
-      // Aquí podrías redirigir al dashboard, por ejemplo:
-      // await this.$router.push('/dashboard')
-    },
+async login() {
+  try {
+    const payload = {
+      identifier: this.formData.identifier,
+      password: this.formData.password,
+    }
+
+    const response = await axios.post(`${API_URL}api/users/login`, payload)
+    this.successMessage = 'Inicio de sesión exitoso.'
+    this.clearForm()
+
+    // Aquí podrías guardar token, por ejemplo:
+    // localStorage.setItem('token', response.data.token)
+
+    // Redirigir a /menu
+    await this.$router.push('/menu')
+
+  } catch (error) {
+    if (error.response && error.response.data && error.response.data.message) {
+      this.errorMessage = error.response.data.message
+    } else {
+      this.errorMessage = 'Error en la conexión con el servidor'
+    }
+  }
+},
     handleForgotPassword() {
       alert('Funcionalidad aún no implementada.')
     }
