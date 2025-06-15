@@ -133,22 +133,18 @@ export default {
     validateForm() {
       this.errors = {};
 
-      // Validar nombre completo
       if (!this.form.nombre || this.form.nombre.length > 100) {
         this.errors.nombre = 'El nombre completo es requerido y debe tener máximo 100 caracteres';
       }
 
-      // Validar username
       if (!this.form.username || this.form.username.length < 3 || this.form.username.length > 100) {
         this.errors.username = 'El nombre de usuario debe tener entre 3 y 100 caracteres';
       }
 
-      // Validar contraseña
       if (!this.form.contrasena || this.form.contrasena.length < 8 || this.form.contrasena.length > 100) {
         this.errors.contrasena = 'La contraseña debe tener entre 8 y 100 caracteres';
       }
 
-      // Validar roles si se muestran
       if (this.showRoleSelection && this.form.selectedRoles.length === 0) {
         this.errors.roles = 'Debe seleccionar al menos un rol';
       }
@@ -167,14 +163,13 @@ export default {
         const userData = {
           nombre: this.form.nombre.trim(),
           username: this.form.username.trim(),
-          password: this.form.contrasena,
-          roles: this.form.selectedRoles.length ? this.form.selectedRoles : null
+          password: this.form.contrasena,   // <-- Aquí corregí para que la propiedad sea "password"
+          roles: this.form.selectedRoles.length ? this.form.selectedRoles : []
         };
 
         console.log('Enviando datos:', { ...userData, password: '[HIDDEN]' });
 
         const response = await axios.post('/api/users/register', userData);
-
 
         if (response.status >= 200 && response.status < 300) {
           this.successMessage = 'Usuario registrado con éxito. ¡Ya puedes iniciar sesión!';
@@ -193,7 +188,6 @@ export default {
         } else {
           this.generalError = response.data.mensaje || 'Error al registrar usuario';
         }
-
       } catch (error) {
         console.error('Error en registro:', error);
 
