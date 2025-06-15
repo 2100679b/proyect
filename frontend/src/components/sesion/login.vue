@@ -99,13 +99,14 @@
         </div>
 
         <!-- Enlace para alternar entre login y registro -->
-        <router-link
-          v-if="!isLoading"
-          :to="isRegister ? '/login' : '/register'"
-          class="toggle-login-link"
-        >
-          {{ isRegister ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate' }}
-        </router-link>
+<router-link
+  v-if="!isLoading"
+  :to="isRegister ? '/login' : '/register'"
+  class="toggle-login-link"
+>
+  {{ isRegister ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate' }}
+</router-link>
+
 
         <!-- Mensajes de error y éxito -->
         <div v-if="errorMessage" class="error-message">
@@ -148,9 +149,6 @@
 
 <script>
 import axios from 'axios'
-
-// Extraemos la URL base del backend desde la variable de entorno
-const API_URL = process.env.VUE_APP_API_URL
 
 export default {
   name: 'Login',
@@ -228,7 +226,7 @@ export default {
     async login() {
       const { identifier, password } = this.formData
       try {
-        const response = await axios.post(`${API_URL}api/users/login`, {
+        const response = await axios.post('http://localhost:3001/api/users/login', {
           username: identifier.trim(),
           password
         })
@@ -249,7 +247,7 @@ export default {
     async register() {
       const { username, password } = this.formData
       try {
-        await axios.post(`${API_URL}api/users/register`, {
+        await axios.post('http://localhost:3001/api/users/register', {
           nombre: username, // usando el mismo campo como nombre
           username: username.trim(),
           password
