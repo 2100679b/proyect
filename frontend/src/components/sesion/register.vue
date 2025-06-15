@@ -19,34 +19,92 @@
           <span v-if="errors.username" class="error-message">{{ errors.username }}</span>
         </div>
 
-        <!-- Nombre Completo -->
+        <!-- Nombre -->
         <div class="form-group">
-          <label for="nombre">Nombre Completo</label>
+          <label for="nombre">Nombre</label>
           <input 
             type="text" 
             id="nombre"
             v-model.trim="form.nombre"
             :class="{ 'error': errors.nombre }"
-            placeholder="Tu nombre completo"
+            placeholder="Tu nombre"
             :disabled="isSubmitting"
             required
           />
           <span v-if="errors.nombre" class="error-message">{{ errors.nombre }}</span>
         </div>
 
+        <!-- Segundo Nombre (opcional) -->
+        <div class="form-group">
+          <label for="segundo_nombre">Segundo Nombre (opcional)</label>
+          <input 
+            type="text" 
+            id="segundo_nombre"
+            v-model.trim="form.segundo_nombre"
+            :class="{ 'error': errors.segundo_nombre }"
+            placeholder="Tu segundo nombre"
+            :disabled="isSubmitting"
+          />
+          <span v-if="errors.segundo_nombre" class="error-message">{{ errors.segundo_nombre }}</span>
+        </div>
+
+        <!-- Apellido Paterno -->
+        <div class="form-group">
+          <label for="apellido_paterno">Apellido Paterno</label>
+          <input 
+            type="text" 
+            id="apellido_paterno"
+            v-model.trim="form.apellido_paterno"
+            :class="{ 'error': errors.apellido_paterno }"
+            placeholder="Tu apellido paterno"
+            :disabled="isSubmitting"
+            required
+          />
+          <span v-if="errors.apellido_paterno" class="error-message">{{ errors.apellido_paterno }}</span>
+        </div>
+
+        <!-- Apellido Materno -->
+        <div class="form-group">
+          <label for="apellido_materno">Apellido Materno</label>
+          <input 
+            type="text" 
+            id="apellido_materno"
+            v-model.trim="form.apellido_materno"
+            :class="{ 'error': errors.apellido_materno }"
+            placeholder="Tu apellido materno"
+            :disabled="isSubmitting"
+            required
+          />
+          <span v-if="errors.apellido_materno" class="error-message">{{ errors.apellido_materno }}</span>
+        </div>
+
+        <!-- Correo (opcional, para futuro uso) -->
+        <div class="form-group">
+          <label for="correo">Correo Electrónico (opcional)</label>
+          <input 
+            type="email" 
+            id="correo"
+            v-model.trim="form.correo"
+            :class="{ 'error': errors.correo }"
+            placeholder="tu@email.com"
+            :disabled="isSubmitting"
+          />
+          <span v-if="errors.correo" class="error-message">{{ errors.correo }}</span>
+        </div>
+
         <!-- Password -->
         <div class="form-group">
-          <label for="password">Contraseña</label>
+          <label for="contrasena">Contraseña</label>
           <input 
             type="password" 
-            id="password"
-            v-model="form.password"
-            :class="{ 'error': errors.password }"
+            id="contrasena"
+            v-model="form.contrasena"
+            :class="{ 'error': errors.contrasena }"
             placeholder="Mínimo 8 caracteres"
             :disabled="isSubmitting"
             required
           />
-          <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
+          <span v-if="errors.contrasena" class="error-message">{{ errors.contrasena }}</span>
         </div>
 
         <!-- Confirm Password -->
@@ -102,7 +160,7 @@
 
 <script>
 import axios from 'axios';
-import bcrypt from 'bcryptjs'; // Instalar: npm install bcryptjs
+// NO uses bcrypt en el frontend - es responsabilidad del backend
 
 export default {
   name: 'Register',
@@ -111,16 +169,20 @@ export default {
       form: {
         username: '',
         nombre: '',
-        password: '',
+        segundo_nombre: '',
+        apellido_paterno: '',
+        apellido_materno: '',
+        correo: '',
+        contrasena: '',
         confirmPassword: '',
-        selectedRoles: [] // Array de IDs de roles seleccionados
+        selectedRoles: []
       },
       errors: {},
       isSubmitting: false,
       generalError: '',
       successMessage: '',
       showRoleSelection: false, // Cambiar a true si quieres mostrar selección de roles
-      availableRoles: [] // Se llenará desde la API
+      availableRoles: []
     };
   },
   async mounted() {
@@ -147,25 +209,46 @@ export default {
 
     validateForm() {
       const letrasYEspacios = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       this.errors = {};
 
-      // Validar username - debe coincidir con la estructura de tu BD
+      // Validar username
       if (!this.form.username || this.form.username.length < 3 || this.form.username.length > 100) {
         this.errors.username = 'El nombre de usuario debe tener entre 3 y 100 caracteres';
       }
 
-      // Validar nombre completo - debe coincidir con campo 'nombre' en BD
-      if (!this.form.nombre || !letrasYEspacios.test(this.form.nombre) || this.form.nombre.length > 100) {
-        this.errors.nombre = 'El nombre es requerido, solo puede contener letras y espacios (máximo 100 caracteres)';
+      // Validar nombre
+      if (!this.form.nombre || !letrasYEspacios.test(this.form.nombre) || this.form.nombre.length > 50) {
+        this.errors.nombre = 'El nombre es requerido, solo puede contener letras y espacios (máximo 50 caracteres)';
       }
 
-      // Validar contraseña - debe ser lo suficientemente fuerte para hash
-      if (!this.form.password || this.form.password.length < 8) {
-        this.errors.password = 'La contraseña debe tener al menos 8 caracteres';
+      // Validar segundo nombre (opcional)
+      if (this.form.segundo_nombre && (!letrasYEspacios.test(this.form.segundo_nombre) || this.form.segundo_nombre.length > 50)) {
+        this.errors.segundo_nombre = 'Solo puede contener letras y espacios (máximo 50 caracteres)';
+      }
+
+      // Validar apellido paterno
+      if (!this.form.apellido_paterno || !letrasYEspacios.test(this.form.apellido_paterno) || this.form.apellido_paterno.length > 50) {
+        this.errors.apellido_paterno = 'El apellido paterno es requerido, solo puede contener letras y espacios (máximo 50 caracteres)';
+      }
+
+      // Validar apellido materno
+      if (!this.form.apellido_materno || !letrasYEspacios.test(this.form.apellido_materno) || this.form.apellido_materno.length > 50) {
+        this.errors.apellido_materno = 'El apellido materno es requerido, solo puede contener letras y espacios (máximo 50 caracteres)';
+      }
+
+      // Validar correo (opcional)
+      if (this.form.correo && !emailRegex.test(this.form.correo)) {
+        this.errors.correo = 'El formato del correo electrónico no es válido';
+      }
+
+      // Validar contraseña
+      if (!this.form.contrasena || this.form.contrasena.length < 8) {
+        this.errors.contrasena = 'La contraseña debe tener al menos 8 caracteres';
       }
 
       // Confirmar contraseña
-      if (!this.form.confirmPassword || this.form.password !== this.form.confirmPassword) {
+      if (!this.form.confirmPassword || this.form.contrasena !== this.form.confirmPassword) {
         this.errors.confirmPassword = 'Las contraseñas no coinciden';
       }
 
@@ -177,16 +260,6 @@ export default {
       return Object.keys(this.errors).length === 0;
     },
 
-    async hashPassword(password) {
-      try {
-        const saltRounds = 12;
-        return await bcrypt.hash(password, saltRounds);
-      } catch (error) {
-        console.error('Error hasheando contraseña:', error);
-        throw error;
-      }
-    },
-
     async handleSubmit() {
       this.clearMessages();
 
@@ -195,19 +268,18 @@ export default {
       this.isSubmitting = true;
 
       try {
-        // Hashear la contraseña antes de enviar
-        const hashedPassword = await this.hashPassword(this.form.password);
-
-        // Estructura de datos que coincide con tu esquema de BD
+        // Estructura de datos que coincide exactamente con tu backend
         const userData = {
           username: this.form.username.trim(),
           nombre: this.form.nombre.trim(),
-          password: hashedPassword, // Contraseña hasheada
-          roles: this.showRoleSelection ? this.form.selectedRoles : [1], // Array de IDs de roles
-          registro_usuario: 0 // Usuario sistema por defecto
+          segundo_nombre: this.form.segundo_nombre.trim() || null,
+          apellido_paterno: this.form.apellido_paterno.trim(),
+          apellido_materno: this.form.apellido_materno.trim(),
+          correo: this.form.correo.trim() || null,
+          contrasena: this.form.contrasena // El backend se encarga del hash
         };
 
-        console.log('Enviando datos:', { ...userData, password: '[HIDDEN]' });
+        console.log('Enviando datos:', { ...userData, contrasena: '[HIDDEN]' });
 
         const response = await axios.post('/api/register', userData);
 
@@ -218,7 +290,11 @@ export default {
           this.form = {
             username: '',
             nombre: '',
-            password: '',
+            segundo_nombre: '',
+            apellido_paterno: '',
+            apellido_materno: '',
+            correo: '',
+            contrasena: '',
             confirmPassword: '',
             selectedRoles: []
           };
@@ -228,7 +304,7 @@ export default {
             this.$router.push('/login');
           }, 2000);
         } else {
-          this.generalError = response.data.message || 'Error al registrar usuario';
+          this.generalError = response.data.mensaje || 'Error al registrar usuario';
         }
 
       } catch (error) {
@@ -236,11 +312,11 @@ export default {
         
         if (error.response) {
           const status = error.response.status;
-          const message = error.response.data?.message || error.response.data?.error;
+          const message = error.response.data?.mensaje || error.response.data?.error;
           
           switch (status) {
             case 409:
-              this.generalError = 'El nombre de usuario ya existe. Elige otro.';
+              this.generalError = 'El nombre de usuario o nombre completo ya existe. Elige otro.';
               break;
             case 400:
               this.generalError = message || 'Datos inválidos. Verifica la información.';
