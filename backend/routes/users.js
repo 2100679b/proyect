@@ -1,32 +1,29 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db/db');
+const bcrypt = require('bcrypt');
 
-// Registrar un nuevo usuario
+// =====================
+// REGISTRO
+// =====================
 router.post('/register', async (req, res) => {
   const { nombre, username, password, roles = [1], registro_usuario = 0 } = req.body;
 
   try {
-    // Validar si 'nombre' o 'username' ya existen (evitar error por UNIQUE)
-    const nombreExist = await db.query(
-      'SELECT 1 FROM seguridad.usuarios WHERE nombre = $1',
-      [nombre]
+    // Verificar si ya existe el username o el nombre
+    const existe = await db.query(
+      `SELECT * FROM seguridad.usuarios WHERE username = $1 OR nombre = $2`,
+      [username, nombre]
     );
-    if (nombreExist.rowCount > 0) {
-      return res.status(409).json({ error: 'El nombre ya está registrado' });
+
+    if (existe.rowCount > 0) {
+      return res.status(409).json({ error: 'El nombre o el usuario ya existen.' });
     }
 
-    const usernameExist = await db.query(
-      'SELECT 1 FROM seguridad.usuarios WHERE username = $1',
-      [username]
-    );
-    if (usernameExist.rowCount > 0) {
-      return res.status(409).json({ error: 'El username ya está en uso' });
-    }
-
-    // Hashear la contraseña antes de guardar
+    // Encriptar la contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Insertar usuario
     await db.query(
       `INSERT INTO seguridad.usuarios (nombre, username, password, roles, registro_usuario)
        VALUES ($1, $2, $3, $4, $5)`,
@@ -37,6 +34,57 @@ router.post('/register', async (req, res) => {
   } catch (error) {
     console.error('❌ Error al registrar usuario:', error);
     res.status(500).json({ error: 'Error al registrar usuario' });
+  }
+});
+
+// =====================
+// LOGIN
+// =====================
+router.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const result = await db.query(
+      'SELECT * FROM seguridad.usuarios WHERE username = $1',
+      [username]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+    }
+
+    const user = result.rows[0];
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+    }
+
+    res.json({
+      mensaje: `Bienvenido, ${user.nombre}`,
+      usuario: {
+        id: user.id,
+        nombre: user.nombre,
+        username: user.username,
+        roles: user.roles
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error en login:', error);
+    res.status(500).json({ error: 'Error interno en el servidor' });
+  }
+});
+
+// =====================
+// LISTADO DE USUARIOS
+// =====================
+router.get('/', async (req, res) => {
+  try {
+    const result = await db.query('SELECT id, nombre, username, roles FROM seguridad.usuarios');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('❌ Error al obtener usuarios:', error);
+    res.status(500).json({ error: 'Error al obtener usuarios' });
   }
 });
 
