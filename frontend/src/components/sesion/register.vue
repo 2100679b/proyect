@@ -173,7 +173,8 @@ export default {
 
         console.log('Enviando datos:', { ...userData, password: '[HIDDEN]' });
 
-        const response = await axios.post('/api/register', userData);
+        const response = await axios.post('/api/users/register', userData);
+
 
         if (response.status >= 200 && response.status < 300) {
           this.successMessage = 'Usuario registrado con éxito. ¡Ya puedes iniciar sesión!';
