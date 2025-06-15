@@ -10,15 +10,16 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 5432,
-  ssl: isProduction ? { rejectUnauthorized: false } : false,
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });
 
-pool.connect()
-  .then(() => console.log('✅ Conectado a PostgreSQL en', process.env.DB_HOST))
-  .catch(err => {
-    console.error('❌ Error de conexión a PostgreSQL:');
-    console.error(err);
-    process.exit(1); // Salir si no hay conexión
-  });
+pool.on('connect', () => {
+  console.log(`✅ Conectado a PostgreSQL (${process.env.DB_HOST})`);
+});
+
+pool.on('error', (err) => {
+  console.error('❌ Error inesperado en el pool de PostgreSQL:', err);
+  process.exit(1);
+});
 
 module.exports = pool;
