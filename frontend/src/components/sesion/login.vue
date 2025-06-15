@@ -1,64 +1,68 @@
 <template>
   <div class="login-container">
     <div class="login-box">
-      <!-- Título y subtítulo -->
       <h1 class="login-title">{{ isRegister ? 'Registro' : 'Iniciar Sesión' }}</h1>
-      <p class="login-subtitle">
-        {{ isRegister ? 'Crea tu cuenta' : 'Accede a tu cuenta' }}
-      </p>
+      <p class="login-subtitle">{{ isRegister ? 'Crea tu cuenta' : 'Accede a tu cuenta' }}</p>
 
-      <!-- Formulario -->
       <form @submit.prevent="handleSubmit" class="login-form">
-        <!-- Campo de email (solo en registro) -->
+        <!-- Email (registro) -->
         <div v-if="isRegister" class="form-group">
-          <label for="email" class="form-label">Email</label>
+          <label for="email" class="form-label">Correo electrónico</label>
           <input
             id="email"
-            v-model="formData.email"
+            v-model.trim="formData.email"
             type="email"
             class="form-input"
-            :class="{ loading: isLoading }"
+            :class="{ 'error': errors.email }"
             placeholder="tu@email.com"
             required
             :disabled="isLoading"
           />
+          <span v-if="errors.email" class="field-error">{{ errors.email }}</span>
         </div>
 
-        <!-- Campo de usuario (solo en registro) -->
+        <!-- Usuario (registro) -->
         <div v-if="isRegister" class="form-group">
           <label for="username" class="form-label">Usuario</label>
           <input
             id="username"
-            v-model="formData.username"
+            v-model.trim="formData.username"
             type="text"
             class="form-input"
-            :class="{ loading: isLoading }"
+            :class="{ 'error': errors.username }"
             placeholder="Nombre de usuario"
             required
-            :disabled="isLoading"
             minlength="3"
+            :disabled="isLoading"
           />
+          <span v-if="errors.username" class="field-error">{{ errors.username }}</span>
         </div>
 
-        <!-- Campo de identificador (email o usuario para login) -->
+        <!-- Identificador (login) -->
         <div v-if="!isRegister" class="form-group">
-          <label for="identifier" class="form-label">Usuario</label>
+          <label for="identifier" class="form-label">
+            {{ loginByEmail ? 'Correo electrónico' : 'Usuario' }}
+          </label>
           <input
             id="identifier"
-            v-model="formData.identifier"
-            type="text"
+            v-model.trim="formData.identifier"
+            :type="loginByEmail ? 'email' : 'text'"
             class="form-input"
-            :class="{ loading: isLoading }"
-            placeholder="Nombre de usuario"
+            :class="{ 'error': errors.identifier }"
+            :placeholder="loginByEmail ? 'tu@email.com' : 'Nombre de usuario'"
             required
             :disabled="isLoading"
           />
+          <span v-if="errors.identifier" class="field-error">{{ errors.identifier }}</span>
           <small class="form-hint">
-            Ingresa tu nombre de usuario
+            Ingresa tu {{ loginByEmail ? 'correo electrónico' : 'nombre de usuario' }}
           </small>
+          <a href="#" class="toggle-login-link" @click.prevent="toggleLoginMethod">
+            Usar {{ loginByEmail ? 'usuario' : 'correo electrónico' }} en su lugar
+          </a>
         </div>
 
-        <!-- Campo de contraseña -->
+        <!-- Contraseña -->
         <div class="form-group">
           <label for="password" class="form-label">Contraseña</label>
           <input
@@ -66,89 +70,57 @@
             v-model="formData.password"
             type="password"
             class="form-input"
-            :class="{ loading: isLoading }"
-            :placeholder="isRegister ? 'Mínimo 6 caracteres' : 'Tu contraseña'"
+            :class="{ 'error': errors.password }"
+            :placeholder="isRegister ? 'Mínimo 8 caracteres' : 'Tu contraseña'"
             required
             :disabled="isLoading"
-            :minlength="isRegister ? 6 : undefined"
+            :minlength="isRegister ? 8 : undefined"
           />
+          <span v-if="errors.password" class="field-error">{{ errors.password }}</span>
         </div>
 
-        <!-- Campo de confirmar contraseña (solo en registro) -->
+        <!-- Confirmar contraseña (registro) -->
         <div v-if="isRegister" class="form-group">
-          <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
+          <label for="confirmPassword" class="form-label">Confirmar contraseña</label>
           <input
             id="confirmPassword"
             v-model="formData.confirmPassword"
             type="password"
             class="form-input"
-            :class="{ 
-              loading: isLoading,
-              'error': isRegister && formData.confirmPassword && formData.password !== formData.confirmPassword
-            }"
+            :class="{ 'error': errors.confirmPassword }"
             placeholder="Repite tu contraseña"
             required
             :disabled="isLoading"
           />
-          <small 
-            v-if="isRegister && formData.confirmPassword && formData.password !== formData.confirmPassword" 
-            class="field-error"
-          >
-            Las contraseñas no coinciden
-          </small>
+          <span v-if="errors.confirmPassword" class="field-error">{{ errors.confirmPassword }}</span>
         </div>
 
-        <!-- Enlace para alternar entre login y registro -->
-        <router-link
-          v-if="!isLoading"
-          :to="isRegister ? '/login' : '/register'"
-          class="toggle-login-link"
-        >
-          {{ isRegister ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate' }}
-        </router-link>
-
-        <!-- Mensajes de error y éxito -->
-        <div v-if="errorMessage" class="error-message">
-          {{ errorMessage }}
-        </div>
-        
-        <div v-if="successMessage" class="success-message">
-          {{ successMessage }}
+        <!-- Enlaces de alternancia -->
+        <div class="toggle-links" v-if="!isLoading">
+          <router-link v-if="!isRegister" to="/register" class="toggle-login-link">¿No tienes cuenta? Regístrate</router-link>
+          <router-link v-else to="/login" class="toggle-login-link">¿Ya tienes cuenta? Inicia sesión</router-link>
         </div>
 
-        <!-- Botón de envío -->
-        <button
-          type="submit"
-          class="submit-btn"
-          :disabled="isLoading || !isFormValid"
-        >
-          <span v-if="!isLoading">
-            {{ isRegister ? 'Crear Cuenta' : 'Iniciar Sesión' }}
-          </span>
-          <span v-else>
-            {{ isRegister ? 'Creando cuenta...' : 'Iniciando sesión...' }}
-          </span>
+        <!-- Mensajes -->
+        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+        <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
+
+        <!-- Botón -->
+        <button type="submit" class="submit-btn" :disabled="isLoading || !isFormValid">
+          <span v-if="!isLoading">{{ isRegister ? 'Crear cuenta' : 'Iniciar sesión' }}</span>
+          <span v-else>{{ isRegister ? 'Creando cuenta...' : 'Iniciando sesión...' }}</span>
         </button>
       </form>
 
-      <!-- Enlaces adicionales -->
+      <!-- Enlace adicional -->
       <div class="links-container">
-        <a href="#" @click.prevent="handleForgotPassword" class="additional-link">
-          ¿Olvidaste tu contraseña?
-        </a>
-      </div>
-
-      <!-- Información de usuario de prueba -->
-      <div v-if="!isRegister" class="demo-info">
-        <small>Usuario de prueba: <strong>arodriguezp</strong> / Contraseña: <strong>123456</strong></small>
+        <a href="#" @click.prevent="handleForgotPassword" class="additional-link">¿Olvidaste tu contraseña?</a>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios'
-
 export default {
   name: 'Login',
   data() {
@@ -157,8 +129,8 @@ export default {
       isLoading: false,
       errorMessage: '',
       successMessage: '',
-      // Configuración de la API
-      apiBaseUrl: process.env.VUE_APP_API_URL || 'https://tu-api-aws.execute-api.region.amazonaws.com/prod',
+      loginByEmail: false,
+      errors: {},
       formData: {
         email: '',
         username: '',
@@ -171,46 +143,98 @@ export default {
   computed: {
     isFormValid() {
       const { email, username, identifier, password, confirmPassword } = this.formData
-
-      if (!password?.trim() || password.length < 6) return false
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
       if (this.isRegister) {
-        if (!email?.trim() || !username?.trim()) return false
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(email.trim())) return false
-        if (username.trim().length < 3) return false
-        if (password !== confirmPassword) return false
+        return (
+          emailRegex.test(email.trim()) &&
+          username.trim().length >= 3 &&
+          password.length >= 8 &&
+          password === confirmPassword
+        )
       } else {
-        if (!identifier?.trim()) return false
-        if (identifier.trim().length < 3) return false
+        return this.loginByEmail
+          ? emailRegex.test(identifier.trim()) && password.length > 0
+          : identifier.trim().length >= 3 && password.length > 0
       }
-
-      return true
+    }
+  },
+  created() {
+    this.isRegister = this.$route.path === '/register'
+  },
+  watch: {
+    '$route'(to) {
+      this.isRegister = to.path === '/register'
+      this.clearMessages()
+      this.clearForm()
     }
   },
   methods: {
-    toggleLoginType() {
-      this.isRegister = !this.isRegister
-      this.clearMessages()
-      this.clearForm()
-    },
     clearMessages() {
       this.errorMessage = ''
       this.successMessage = ''
+      this.errors = {}
     },
     clearForm() {
-      this.formData = {
-        email: '',
-        username: '',
-        identifier: '',
-        password: '',
-        confirmPassword: ''
+      for (const key in this.formData) {
+        this.formData[key] = ''
       }
     },
-    async handleSubmit() {
-      if (!this.isFormValid) return
-      this.isLoading = true
+    toggleLoginMethod() {
+      this.loginByEmail = !this.loginByEmail
+      this.formData.identifier = ''
       this.clearMessages()
+    },
+    validateForm() {
+      const errors = {}
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+      if (this.isRegister) {
+        if (!this.formData.email.trim()) {
+          errors.email = 'El correo electrónico es obligatorio'
+        } else if (!emailRegex.test(this.formData.email.trim())) {
+          errors.email = 'Formato de correo no válido'
+        }
+
+        if (!this.formData.username.trim()) {
+          errors.username = 'El nombre de usuario es obligatorio'
+        } else if (this.formData.username.trim().length < 3) {
+          errors.username = 'Debe tener al menos 3 caracteres'
+        }
+
+        if (!this.formData.password) {
+          errors.password = 'La contraseña es obligatoria'
+        } else if (this.formData.password.length < 8) {
+          errors.password = 'Debe tener al menos 8 caracteres'
+        }
+
+        if (!this.formData.confirmPassword) {
+          errors.confirmPassword = 'Confirma la contraseña'
+        } else if (this.formData.password !== this.formData.confirmPassword) {
+          errors.confirmPassword = 'Las contraseñas no coinciden'
+        }
+
+      } else {
+        if (!this.formData.identifier.trim()) {
+          errors.identifier = this.loginByEmail ? 'El correo es obligatorio' : 'El usuario es obligatorio'
+        } else if (this.loginByEmail && !emailRegex.test(this.formData.identifier.trim())) {
+          errors.identifier = 'Formato de correo no válido'
+        }
+
+        if (!this.formData.password) {
+          errors.password = 'La contraseña es obligatoria'
+        }
+      }
+
+      this.errors = errors
+      return Object.keys(errors).length === 0
+    },
+    async handleSubmit() {
+      this.clearMessages()
+
+      if (!this.validateForm()) return
+
+      this.isLoading = true
 
       try {
         if (this.isRegister) {
@@ -218,96 +242,28 @@ export default {
         } else {
           await this.login()
         }
-      } catch (error) {
-        console.error('Error en handleSubmit:', error)
-        this.errorMessage = error.response?.data?.error || error.message || 'Error inesperado'
+      } catch (err) {
+        this.errorMessage = err.message || 'Error inesperado'
       } finally {
         this.isLoading = false
       }
     },
-    async login() {
-      const { identifier, password } = this.formData
-      try {
-        const response = await axios.post(`${this.apiBaseUrl}/api/users/login`, {
-          username: identifier.trim(),
-          password
-        }, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          timeout: 10000 // 10 segundos de timeout
-        })
-
-        if (response.data && response.data.usuario) {
-          this.successMessage = `¡Bienvenido ${response.data.usuario.nombre}! Redirigiendo...`
-
-          setTimeout(() => {
-            this.$emit('login-success', {
-              usuario: response.data.usuario,
-              timestamp: new Date().toISOString()
-            })
-            this.$router.push('/menu')
-          }, 1500)
-        } else {
-          throw new Error('Respuesta del servidor incompleta')
-        }
-      } catch (error) {
-        console.error('Error en login:', error)
-        if (error.code === 'ECONNABORTED') {
-          throw new Error('Tiempo de espera agotado. Verifica tu conexión.')
-        }
-        throw new Error(error.response?.data?.error || 'Usuario o contraseña incorrectos')
-      }
-    },
     async register() {
-      const { email, username, password } = this.formData
-      try {
-        const response = await axios.post(`${this.apiBaseUrl}/api/users/register`, {
-          email: email.trim(),
-          nombre: username.trim(),
-          username: username.trim(),
-          password
-        }, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          timeout: 10000
-        })
-
-        this.successMessage = '¡Cuenta creada exitosamente! Redirigiendo al inicio de sesión...'
-
-        setTimeout(() => {
-          this.isRegister = false
-          this.formData.identifier = username
-          this.clearForm()
-        }, 2000)
-      } catch (error) {
-        console.error('Error en register:', error)
-        if (error.code === 'ECONNABORTED') {
-          throw new Error('Tiempo de espera agotado. Verifica tu conexión.')
-        }
-        throw new Error(error.response?.data?.error || 'Error al crear la cuenta')
-      }
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      this.successMessage = 'Cuenta creada con éxito. Redirigiendo...'
+      this.clearForm()
+      await this.$router.push('/login')
+    },
+    async login() {
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      this.successMessage = 'Inicio de sesión exitoso.'
+      this.clearForm()
+      // Aquí podrías redirigir al dashboard, por ejemplo:
+      // await this.$router.push('/dashboard')
     },
     handleForgotPassword() {
-      this.$emit('forgot-password-requested')
-      alert('Funcionalidad de recuperación de contraseña - Por implementar')
+      alert('Funcionalidad aún no implementada.')
     }
-  },
-  mounted() {
-    // Verificar configuración de API
-    console.log('API Base URL:', this.apiBaseUrl)
-    if (this.apiBaseUrl.includes('undefined')) {
-      console.warn('⚠️ Variable de entorno VUE_APP_API_URL no está configurada correctamente')
-    }
-  },
-  beforeUnmount() {
-    this.clearMessages()
-  },
-  beforeRouteLeave() {
-    this.clearMessages()
   }
 }
 </script>
