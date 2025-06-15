@@ -226,7 +226,7 @@ export default {
     async login() {
       const { identifier, password } = this.formData
       try {
-        const response = await axios.post('http://localhost:3000/api/users/login', {
+        const response = await axios.post('http://localhost:3001/api/users/login', {
           username: identifier.trim(),
           password
         })
@@ -247,7 +247,7 @@ export default {
     async register() {
       const { username, password } = this.formData
       try {
-        await axios.post('http://localhost:3000/api/users/register', {
+        await axios.post('http://localhost:3001/api/users/register', {
           nombre: username, // usando el mismo campo como nombre
           username: username.trim(),
           password
