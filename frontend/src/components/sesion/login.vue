@@ -46,7 +46,7 @@
           <input
             id="identifier"
             v-model.trim="formData.identifier"
-            :type="loginByEmail ? 'email' : 'text'"
+            :type="loginByEmail ? 'email' : 'text'"`
             class="form-input"
             :class="{ 'error': errors.identifier }"
             :placeholder="loginByEmail ? 'tu@email.com' : 'Nombre de usuario'"
@@ -121,6 +121,9 @@
 </template>
 
 <script>
+import axios from 'axios'
+const API_URL = 'http://localhost:3000/'
+
 export default {
   name: 'Login',
   data() {
@@ -254,31 +257,30 @@ export default {
       this.clearForm()
       await this.$router.push('/login')
     },
-async login() {
-  try {
-    const payload = {
-      identifier: this.formData.identifier,
-      password: this.formData.password,
-    }
+    async login() {
+      try {
+        const payload = {
+          identifier: this.formData.identifier,
+          password: this.formData.password,
+        }
 
-    const response = await axios.post(`${API_URL}api/users/login`, payload)
-    this.successMessage = 'Inicio de sesión exitoso.'
-    this.clearForm()
+        const response = await axios.post(`${API_URL}api/users/login`, payload)
+        this.successMessage = 'Inicio de sesión exitoso.'
+        this.clearForm()
 
-    // Aquí podrías guardar token, por ejemplo:
-    // localStorage.setItem('token', response.data.token)
+        // Ejemplo: guardar token si es necesario
+        // localStorage.setItem('token', response.data.token)
 
-    // Redirigir a /menu
-    await this.$router.push('/menu')
+        await this.$router.push('/menu')
 
-  } catch (error) {
-    if (error.response && error.response.data && error.response.data.message) {
-      this.errorMessage = error.response.data.message
-    } else {
-      this.errorMessage = 'Error en la conexión con el servidor'
-    }
-  }
-},
+      } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+          this.errorMessage = error.response.data.message
+        } else {
+          this.errorMessage = 'Error en la conexión con el servidor'
+        }
+      }
+    },
     handleForgotPassword() {
       alert('Funcionalidad aún no implementada.')
     }
