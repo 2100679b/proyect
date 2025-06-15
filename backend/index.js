@@ -52,5 +52,26 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// Iniciar el servidor solo si este archivo se ejecuta directamente
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Servidor iniciado en http://0.0.0.0:${PORT}`);
+    console.log(`📅 ${new Date().toLocaleString()}`);
+    console.log(`🌱 Entorno: ${NODE_ENV || 'development'}`);
+  });
+
+  // Manejo graceful de señales
+  process.on('SIGINT', () => {
+    console.log('\n📤 Señal SIGINT recibida. Cerrando el servidor...');
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', () => {
+    console.log('\n📤 Señal SIGTERM recibida. Cerrando el servidor...');
+    process.exit(0);
+  });
+}
+
 // Exportar app y pool
 module.exports = { app, pool };
