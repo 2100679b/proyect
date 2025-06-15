@@ -46,7 +46,7 @@
           <input
             id="identifier"
             v-model.trim="formData.identifier"
-            :type="loginByEmail ? 'email' : 'text'"`
+            :type="loginByEmail ? 'email' : 'text'"
             class="form-input"
             :class="{ 'error': errors.identifier }"
             :placeholder="loginByEmail ? 'tu@email.com' : 'Nombre de usuario'"
@@ -222,6 +222,8 @@ export default {
           errors.identifier = this.loginByEmail ? 'El correo es obligatorio' : 'El usuario es obligatorio'
         } else if (this.loginByEmail && !emailRegex.test(this.formData.identifier.trim())) {
           errors.identifier = 'Formato de correo no válido'
+        } else if (!this.loginByEmail && this.formData.identifier.trim().length < 3) {
+          errors.identifier = 'El usuario debe tener al menos 3 caracteres'
         }
 
         if (!this.formData.password) {
@@ -252,10 +254,28 @@ export default {
       }
     },
     async register() {
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      this.successMessage = 'Cuenta creada con éxito. Redirigiendo...'
-      this.clearForm()
-      await this.$router.push('/login')
+      try {
+        const payload = {
+          email: this.formData.email,
+          username: this.formData.username,
+          password: this.formData.password,
+        }
+
+        const response = await axios.post(`${API_URL}api/users/register`, payload)
+        this.successMessage = 'Cuenta creada con éxito. Redirigiendo...'
+        this.clearForm()
+        
+        setTimeout(() => {
+          this.$router.push('/login')
+        }, 1500)
+        
+      } catch (error) {
+        if (error.response?.data?.message) {
+          this.errorMessage = error.response.data.message
+        } else {
+          this.errorMessage = 'Error en el registro. Inténtalo de nuevo.'
+        }
+      }
     },
     async login() {
       try {
@@ -268,13 +288,14 @@ export default {
         this.successMessage = 'Inicio de sesión exitoso.'
         this.clearForm()
 
-        // Ejemplo: guardar token si es necesario
-        // localStorage.setItem('token', response.data.token)
-
-        await this.$router.push('/menu')
+        // Guardar token y redirigir
+        localStorage.setItem('token', response.data.token)
+        setTimeout(() => {
+          this.$router.push('/menu')
+        }, 1000)
 
       } catch (error) {
-        if (error.response && error.response.data && error.response.data.message) {
+        if (error.response?.data?.message) {
           this.errorMessage = error.response.data.message
         } else {
           this.errorMessage = 'Error en la conexión con el servidor'
