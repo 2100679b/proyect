@@ -1,4 +1,4 @@
-/* register.css - Adaptado para Vue.js */
+/* register.css - Adaptado para formulario simplificado Vue.js */
 
 /* Reset básico para el contenedor */
 * {
@@ -20,7 +20,7 @@
 /* Caja principal del formulario */
 .register-card {
   width: 100%;
-  max-width: 500px;
+  max-width: 450px; /* Reducido para formulario más compacto */
   padding: 40px;
   position: relative;
   background: linear-gradient(145deg, #191919, #1f1f1f);
@@ -77,11 +77,12 @@
 /* Contenedor del formulario */
 .register-form {
   width: 100%;
+  animation: formFadeIn 0.5s ease-out;
 }
 
 /* Grupo de campos del formulario */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 22px; /* Aumentado ligeramente para mejor espaciado */
   position: relative;
   text-align: left;
 }
@@ -95,16 +96,9 @@
   font-weight: 500;
 }
 
-/* Texto opcional */
-.optional {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.8rem;
-  font-weight: 300;
-  font-style: italic;
-}
-
-/* Campos de entrada */
-.form-group input {
+/* Campos de entrada (input y select) */
+.form-group input,
+.form-group select {
   width: 100%;
   padding: 12px 18px;
   background: rgba(255, 255, 255, 0.05);
@@ -117,34 +111,65 @@
   backdrop-filter: blur(5px);
 }
 
-.form-group input.error {
+/* Estilos específicos para select múltiple */
+.form-group select[multiple] {
+  min-height: 100px;
+  border-radius: 15px;
+  padding: 8px 12px;
+}
+
+.form-group select[multiple] option {
+  background: #1f1f1f;
+  color: #ffffff;
+  padding: 6px 10px;
+  margin: 2px 0;
+  border-radius: 8px;
+}
+
+.form-group select[multiple] option:checked {
+  background: linear-gradient(45deg, #04fb6b, #0399fd);
+  color: #191919;
+  font-weight: 500;
+}
+
+/* Estados de error */
+.form-group input.error,
+.form-group select.error {
   border-color: #ff4757;
   background: rgba(255, 71, 87, 0.1);
 }
 
-.form-group input.error:focus {
+.form-group input.error:focus,
+.form-group select.error:focus {
   border-color: #ff4757;
   box-shadow: 0 0 20px rgba(255, 71, 87, 0.3);
 }
 
+/* Placeholder */
 .form-group input::placeholder {
   color: rgba(255, 255, 255, 0.5);
   font-style: italic;
 }
 
-.form-group input:focus {
+/* Estados de focus */
+.form-group input:focus,
+.form-group select:focus {
   border-color: #04fb6b;
   background: rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 20px rgba(4, 251, 107, 0.3);
   transform: scale(1.02);
 }
 
-.form-group input:hover:not(:focus) {
+/* Estados de hover */
+.form-group input:hover:not(:focus),
+.form-group select:hover:not(:focus) {
   border-color: rgba(3, 153, 253, 0.8);
   background: rgba(255, 255, 255, 0.08);
 }
 
-.form-group input:disabled {
+/* Estados deshabilitados */
+.form-group input:disabled,
+.form-group select:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   border-color: rgba(255, 255, 255, 0.3);
@@ -240,10 +265,13 @@
   cursor: not-allowed;
   border-color: rgba(255, 255, 255, 0.3);
   color: rgba(255, 255, 255, 0.5);
+  transform: none;
 }
 
 /* Estado de carga */
 .register-btn:disabled.loading {
+  border-color: #04fb6b;
+  color: rgba(255, 255, 255, 0.8);
   position: relative;
 }
 
@@ -274,22 +302,48 @@
   margin: 0;
 }
 
-.login-link a {
+.login-link a,
+.login-link a[href] {
   color: #04fb6b;
   text-decoration: none;
   font-weight: 500;
-  transition: all 0.3s ease;
+  display: inline-block;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0.9;
 }
 
-.login-link a:hover {
+.login-link a:hover,
+.login-link a[href]:hover {
   color: #0399fd;
   opacity: 1;
   text-decoration: underline;
   transform: translateY(-1px);
+  text-shadow: 0 2px 4px rgba(4, 251, 107, 0.3);
+}
+
+/* Validación en tiempo real */
+.form-group input:valid:not(:placeholder-shown) {
+  border-color: #04fb6b;
+  background: rgba(4, 251, 107, 0.05);
+}
+
+.form-group input:invalid:not(:placeholder-shown):not(:focus) {
+  border-color: #ff4757;
+  background: rgba(255, 71, 87, 0.05);
 }
 
 /* Animaciones */
+@keyframes formFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes errorSlide {
   from {
     opacity: 0;
@@ -317,17 +371,6 @@
   100% { transform: translateY(-50%) rotate(360deg); }
 }
 
-/* Mejoras para inputs con validación en tiempo real */
-.form-group input:valid:not(:placeholder-shown) {
-  border-color: #04fb6b;
-  background: rgba(4, 251, 107, 0.05);
-}
-
-.form-group input:invalid:not(:placeholder-shown):not(:focus) {
-  border-color: #ff4757;
-  background: rgba(255, 71, 87, 0.05);
-}
-
 /* Transiciones suaves para los mensajes */
 .general-error,
 .success-message {
@@ -341,7 +384,7 @@
   }
   
   .register-card {
-    max-width: 450px;
+    max-width: 400px;
     padding: 35px 30px;
   }
   
@@ -351,12 +394,17 @@
   }
   
   .form-group {
-    margin-bottom: 18px;
+    margin-bottom: 20px;
   }
   
-  .form-group input {
+  .form-group input,
+  .form-group select {
     padding: 11px 16px;
     font-size: 0.9rem;
+  }
+  
+  .form-group select[multiple] {
+    min-height: 80px;
   }
   
   .register-btn {
@@ -380,6 +428,7 @@
     width: 100%;
     padding: 30px 25px;
     border-radius: 15px;
+    max-width: none;
   }
   
   .register-card h2 {
@@ -389,12 +438,18 @@
   }
   
   .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 18px;
   }
   
-  .form-group input {
+  .form-group input,
+  .form-group select {
     padding: 10px 15px;
     font-size: 0.85rem;
+  }
+  
+  .form-group select[multiple] {
+    min-height: 70px;
+    padding: 6px 10px;
   }
   
   .register-btn {
@@ -429,11 +484,16 @@
   }
   
   .form-group {
-    margin-bottom: 14px;
+    margin-bottom: 16px;
   }
   
-  .form-group input {
+  .form-group input,
+  .form-group select {
     padding: 9px 14px;
+  }
+  
+  .form-group select[multiple] {
+    min-height: 60px;
   }
   
   .register-btn {
@@ -455,7 +515,7 @@
   }
 }
 
-/* Mejoras adicionales para formularios largos */
+/* Optimizaciones adicionales */
 @media (min-height: 800px) {
   .register-container {
     align-items: flex-start;
@@ -463,7 +523,6 @@
   }
 }
 
-/* Optimización para pantallas muy pequeñas en altura */
 @media (max-height: 600px) {
   .register-container {
     align-items: flex-start;
@@ -475,52 +534,15 @@
   }
   
   .form-group {
-    margin-bottom: 12px;
+    margin-bottom: 15px;
   }
   
   .register-card h2 {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
   }
   
   .general-error,
   .success-message {
     margin: 8px 0;
   }
-}
-
-/* Efectos adicionales para mejorar la experiencia */
-.register-form {
-  animation: formFadeIn 0.5s ease-out;
-}
-
-@keyframes formFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Mejora para el botón en estado de carga */
-.register-btn:disabled:not(.loading) {
-  transform: none;
-}
-
-.register-btn:disabled.loading {
-  border-color: #04fb6b;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-/* Estilo para router-link en el login-link */
-.login-link a[href] {
-  display: inline-block;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.login-link a[href]:hover {
-  transform: translateY(-1px);
-  text-shadow: 0 2px 4px rgba(4, 251, 107, 0.3);
 }
