@@ -99,14 +99,13 @@
         </div>
 
         <!-- Enlace para alternar entre login y registro -->
-<router-link
-  v-if="!isLoading"
-  :to="isRegister ? '/login' : '/register'"
-  class="toggle-login-link"
->
-  {{ isRegister ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate' }}
-</router-link>
-
+        <router-link
+          v-if="!isLoading"
+          :to="isRegister ? '/login' : '/register'"
+          class="toggle-login-link"
+        >
+          {{ isRegister ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate' }}
+        </router-link>
 
         <!-- Mensajes de error y éxito -->
         <div v-if="errorMessage" class="error-message">
@@ -158,6 +157,8 @@ export default {
       isLoading: false,
       errorMessage: '',
       successMessage: '',
+      // Configuración de la API
+      apiBaseUrl: process.env.VUE_APP_API_URL || 'https://tu-api-aws.execute-api.region.amazonaws.com/prod',
       formData: {
         email: '',
         username: '',
@@ -218,6 +219,7 @@ export default {
           await this.login()
         }
       } catch (error) {
+        console.error('Error en handleSubmit:', error)
         this.errorMessage = error.response?.data?.error || error.message || 'Error inesperado'
       } finally {
         this.isLoading = false
@@ -226,31 +228,52 @@ export default {
     async login() {
       const { identifier, password } = this.formData
       try {
-        const response = await axios.post('http://localhost:3001/api/users/login', {
+        const response = await axios.post(`${this.apiBaseUrl}/api/users/login`, {
           username: identifier.trim(),
           password
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          timeout: 10000 // 10 segundos de timeout
         })
 
-        this.successMessage = `¡Bienvenido ${response.data.usuario.nombre}! Redirigiendo...`
+        if (response.data && response.data.usuario) {
+          this.successMessage = `¡Bienvenido ${response.data.usuario.nombre}! Redirigiendo...`
 
-        setTimeout(() => {
-          this.$emit('login-success', {
-            usuario: response.data.usuario,
-            timestamp: new Date().toISOString()
-          })
-          this.$router.push('/menu')
-        }, 1500)
+          setTimeout(() => {
+            this.$emit('login-success', {
+              usuario: response.data.usuario,
+              timestamp: new Date().toISOString()
+            })
+            this.$router.push('/menu')
+          }, 1500)
+        } else {
+          throw new Error('Respuesta del servidor incompleta')
+        }
       } catch (error) {
+        console.error('Error en login:', error)
+        if (error.code === 'ECONNABORTED') {
+          throw new Error('Tiempo de espera agotado. Verifica tu conexión.')
+        }
         throw new Error(error.response?.data?.error || 'Usuario o contraseña incorrectos')
       }
     },
     async register() {
-      const { username, password } = this.formData
+      const { email, username, password } = this.formData
       try {
-        await axios.post('http://localhost:3001/api/users/register', {
-          nombre: username, // usando el mismo campo como nombre
+        const response = await axios.post(`${this.apiBaseUrl}/api/users/register`, {
+          email: email.trim(),
+          nombre: username.trim(),
           username: username.trim(),
           password
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          timeout: 10000
         })
 
         this.successMessage = '¡Cuenta creada exitosamente! Redirigiendo al inicio de sesión...'
@@ -261,12 +284,23 @@ export default {
           this.clearForm()
         }, 2000)
       } catch (error) {
+        console.error('Error en register:', error)
+        if (error.code === 'ECONNABORTED') {
+          throw new Error('Tiempo de espera agotado. Verifica tu conexión.')
+        }
         throw new Error(error.response?.data?.error || 'Error al crear la cuenta')
       }
     },
     handleForgotPassword() {
       this.$emit('forgot-password-requested')
       alert('Funcionalidad de recuperación de contraseña - Por implementar')
+    }
+  },
+  mounted() {
+    // Verificar configuración de API
+    console.log('API Base URL:', this.apiBaseUrl)
+    if (this.apiBaseUrl.includes('undefined')) {
+      console.warn('⚠️ Variable de entorno VUE_APP_API_URL no está configurada correctamente')
     }
   },
   beforeUnmount() {
