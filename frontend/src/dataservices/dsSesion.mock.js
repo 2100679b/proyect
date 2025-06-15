@@ -4,7 +4,7 @@ import axios from 'axios'
 import dsSesionMock from './dsSesion.mock.js'
 
 // Cambia esta IP por la de tu backend en producción o usa variables de entorno
-const BASE_URL = 'http://http://18.119.167.171:3000/api/users' // Ejemplo: 'http://18.219.121.55:3000/api/users'
+const BASE_URL = 'http://18.119.167.171:3000/api/users' // Ejemplo: 'http://18.219.121.55:3000/api/users'
 
 const USE_BACKEND = true // Cambia a false para usar el mock (modo prueba)
 
