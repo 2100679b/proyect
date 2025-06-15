@@ -29,7 +29,7 @@ module.exports = app; // ¡IMPORTANTE! Para que daemon.js lo use
 // 🚀 Iniciar servidor
 // ============================
 if (require.main === module) {
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 3001;
   const HOST = process.env.HOST || '0.0.0.0'; // Escucha en todas las IPs
 
   app.listen(PORT, HOST, () => {
