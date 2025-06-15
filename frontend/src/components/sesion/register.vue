@@ -19,78 +19,19 @@
           <span v-if="errors.username" class="error-message">{{ errors.username }}</span>
         </div>
 
-        <!-- Primer Nombre -->
+        <!-- Nombre Completo -->
         <div class="form-group">
-          <label for="nombre">Nombre</label>
+          <label for="nombre">Nombre Completo</label>
           <input 
             type="text" 
             id="nombre"
             v-model.trim="form.nombre"
             :class="{ 'error': errors.nombre }"
-            placeholder="Tu primer nombre"
+            placeholder="Tu nombre completo"
             :disabled="isSubmitting"
             required
           />
           <span v-if="errors.nombre" class="error-message">{{ errors.nombre }}</span>
-        </div>
-
-        <!-- Segundo Nombre -->
-        <div class="form-group">
-          <label for="segundoNombre">Segundo Nombre <span class="optional">(opcional)</span></label>
-          <input 
-            type="text" 
-            id="segundoNombre"
-            v-model.trim="form.segundoNombre"
-            :class="{ 'error': errors.segundoNombre }"
-            placeholder="Tu segundo nombre"
-            :disabled="isSubmitting"
-          />
-          <span v-if="errors.segundoNombre" class="error-message">{{ errors.segundoNombre }}</span>
-        </div>
-
-        <!-- Apellido Paterno -->
-        <div class="form-group">
-          <label for="apellidoPaterno">Apellido Paterno</label>
-          <input 
-            type="text" 
-            id="apellidoPaterno"
-            v-model.trim="form.apellidoPaterno"
-            :class="{ 'error': errors.apellidoPaterno }"
-            placeholder="Tu apellido paterno"
-            :disabled="isSubmitting"
-            required
-          />
-          <span v-if="errors.apellidoPaterno" class="error-message">{{ errors.apellidoPaterno }}</span>
-        </div>
-
-        <!-- Apellido Materno -->
-        <div class="form-group">
-          <label for="apellidoMaterno">Apellido Materno</label>
-          <input 
-            type="text" 
-            id="apellidoMaterno"
-            v-model.trim="form.apellidoMaterno"
-            :class="{ 'error': errors.apellidoMaterno }"
-            placeholder="Tu apellido materno"
-            :disabled="isSubmitting"
-            required
-          />
-          <span v-if="errors.apellidoMaterno" class="error-message">{{ errors.apellidoMaterno }}</span>
-        </div>
-
-        <!-- Email -->
-        <div class="form-group">
-          <label for="email">Correo Electrónico</label>
-          <input 
-            type="email" 
-            id="email"
-            v-model.trim="form.email"
-            :class="{ 'error': errors.email }"
-            placeholder="ejemplo@correo.com"
-            :disabled="isSubmitting"
-            required
-          />
-          <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
         </div>
 
         <!-- Password -->
@@ -123,6 +64,23 @@
           <span v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</span>
         </div>
 
+        <!-- Roles (opcional - para administradores) -->
+        <div class="form-group" v-if="showRoleSelection">
+          <label for="roles">Roles</label>
+          <select 
+            id="roles"
+            v-model="form.selectedRoles"
+            :class="{ 'error': errors.roles }"
+            :disabled="isSubmitting"
+            multiple
+          >
+            <option v-for="role in availableRoles" :key="role.id" :value="role.id">
+              {{ role.role }}
+            </option>
+          </select>
+          <span v-if="errors.roles" class="error-message">{{ errors.roles }}</span>
+        </div>
+
         <!-- Mensajes -->
         <div v-if="generalError" class="general-error">{{ generalError }}</div>
         <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
@@ -144,6 +102,7 @@
 
 <script>
 import axios from 'axios';
+import bcrypt from 'bcryptjs'; // Instalar: npm install bcryptjs
 
 export default {
   name: 'Register',
@@ -152,20 +111,34 @@ export default {
       form: {
         username: '',
         nombre: '',
-        segundoNombre: '',
-        apellidoPaterno: '',
-        apellidoMaterno: '',
-        email: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        selectedRoles: [] // Array de IDs de roles seleccionados
       },
       errors: {},
       isSubmitting: false,
       generalError: '',
-      successMessage: ''
+      successMessage: '',
+      showRoleSelection: false, // Cambiar a true si quieres mostrar selección de roles
+      availableRoles: [] // Se llenará desde la API
     };
   },
+  async mounted() {
+    // Cargar roles disponibles si es necesario
+    if (this.showRoleSelection) {
+      await this.loadAvailableRoles();
+    }
+  },
   methods: {
+    async loadAvailableRoles() {
+      try {
+        const response = await axios.get('/api/roles');
+        this.availableRoles = response.data;
+      } catch (error) {
+        console.error('Error cargando roles:', error);
+      }
+    },
+
     clearMessages() {
       this.generalError = '';
       this.successMessage = '';
@@ -173,44 +146,45 @@ export default {
     },
 
     validateForm() {
-      const letras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const letrasYEspacios = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
       this.errors = {};
 
-      // Validaciones básicas
-      if (!this.form.username || this.form.username.length < 3 || !/^[a-zA-Z0-9_]+$/.test(this.form.username)) {
-        this.errors.username = 'El nombre debe tener al menos 3 caracteres y solo contener letras, números y guiones bajos';
+      // Validar username - debe coincidir con la estructura de tu BD
+      if (!this.form.username || this.form.username.length < 3 || this.form.username.length > 100) {
+        this.errors.username = 'El nombre de usuario debe tener entre 3 y 100 caracteres';
       }
 
-      if (!this.form.nombre || !letras.test(this.form.nombre)) {
-        this.errors.nombre = 'El nombre es requerido y solo puede contener letras';
+      // Validar nombre completo - debe coincidir con campo 'nombre' en BD
+      if (!this.form.nombre || !letrasYEspacios.test(this.form.nombre) || this.form.nombre.length > 100) {
+        this.errors.nombre = 'El nombre es requerido, solo puede contener letras y espacios (máximo 100 caracteres)';
       }
 
-      if (this.form.segundoNombre && !letras.test(this.form.segundoNombre)) {
-        this.errors.segundoNombre = 'Solo letras permitidas';
+      // Validar contraseña - debe ser lo suficientemente fuerte para hash
+      if (!this.form.password || this.form.password.length < 8) {
+        this.errors.password = 'La contraseña debe tener al menos 8 caracteres';
       }
 
-      if (!this.form.apellidoPaterno || !letras.test(this.form.apellidoPaterno)) {
-        this.errors.apellidoPaterno = 'El apellido paterno es requerido y solo puede contener letras';
-      }
-
-      if (!this.form.apellidoMaterno || !letras.test(this.form.apellidoMaterno)) {
-        this.errors.apellidoMaterno = 'El apellido materno es requerido y solo puede contener letras';
-      }
-
-      if (!this.form.email || !emailRegex.test(this.form.email)) {
-        this.errors.email = 'Correo requerido y debe tener formato válido';
-      }
-
-      if (!this.form.password || this.form.password.length < 8 || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(this.form.password)) {
-        this.errors.password = 'La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, minúscula y número';
-      }
-
+      // Confirmar contraseña
       if (!this.form.confirmPassword || this.form.password !== this.form.confirmPassword) {
         this.errors.confirmPassword = 'Las contraseñas no coinciden';
       }
 
+      // Validar roles si se muestran
+      if (this.showRoleSelection && this.form.selectedRoles.length === 0) {
+        this.errors.roles = 'Debe seleccionar al menos un rol';
+      }
+
       return Object.keys(this.errors).length === 0;
+    },
+
+    async hashPassword(password) {
+      try {
+        const saltRounds = 12;
+        return await bcrypt.hash(password, saltRounds);
+      } catch (error) {
+        console.error('Error hasheando contraseña:', error);
+        throw error;
+      }
     },
 
     async handleSubmit() {
@@ -221,43 +195,63 @@ export default {
       this.isSubmitting = true;
 
       try {
+        // Hashear la contraseña antes de enviar
+        const hashedPassword = await this.hashPassword(this.form.password);
+
+        // Estructura de datos que coincide con tu esquema de BD
         const userData = {
           username: this.form.username.trim(),
           nombre: this.form.nombre.trim(),
-          segundo_nombre: this.form.segundoNombre?.trim() || null,
-          apellido_paterno: this.form.apellidoPaterno.trim(),
-          apellido_materno: this.form.apellidoMaterno.trim(),
-          correo: this.form.email.trim().toLowerCase(),
-          contrasena: this.form.password
+          password: hashedPassword, // Contraseña hasheada
+          roles: this.showRoleSelection ? this.form.selectedRoles : [1], // Array de IDs de roles
+          registro_usuario: 0 // Usuario sistema por defecto
         };
 
-        const res = await axios.post('/api/register', userData);
+        console.log('Enviando datos:', { ...userData, password: '[HIDDEN]' });
 
-        if (res.status >= 200 && res.status < 300 && res.data.message?.includes('éxito')) {
+        const response = await axios.post('/api/register', userData);
+
+        if (response.status >= 200 && response.status < 300) {
           this.successMessage = 'Usuario registrado con éxito. ¡Ya puedes iniciar sesión!';
+          
+          // Limpiar formulario
           this.form = {
             username: '',
             nombre: '',
-            segundoNombre: '',
-            apellidoPaterno: '',
-            apellidoMaterno: '',
-            email: '',
             password: '',
-            confirmPassword: ''
+            confirmPassword: '',
+            selectedRoles: []
           };
-          setTimeout(() => this.$router.push('/login'), 2000);
+
+          // Redirigir después de 2 segundos
+          setTimeout(() => {
+            this.$router.push('/login');
+          }, 2000);
         } else {
-          this.generalError = res.data.message || 'Ocurrió un error al registrar.';
+          this.generalError = response.data.message || 'Error al registrar usuario';
         }
-      } catch (err) {
-        console.error('Error en registro:', err);
-        if (err.response) {
-          const status = err.response.status;
-          this.generalError =
-            status === 409 ? 'El usuario o correo ya existe.' :
-            status === 400 ? 'Datos inválidos. Verifica la información.' :
-            err.response.data?.message || 'Error del servidor.';
-        } else if (err.request) {
+
+      } catch (error) {
+        console.error('Error en registro:', error);
+        
+        if (error.response) {
+          const status = error.response.status;
+          const message = error.response.data?.message || error.response.data?.error;
+          
+          switch (status) {
+            case 409:
+              this.generalError = 'El nombre de usuario ya existe. Elige otro.';
+              break;
+            case 400:
+              this.generalError = message || 'Datos inválidos. Verifica la información.';
+              break;
+            case 500:
+              this.generalError = 'Error interno del servidor. Intenta más tarde.';
+              break;
+            default:
+              this.generalError = message || 'Error del servidor.';
+          }
+        } else if (error.request) {
           this.generalError = 'Error de conexión. Verifica tu internet.';
         } else {
           this.generalError = 'Error desconocido. Intenta nuevamente.';
@@ -269,6 +263,5 @@ export default {
   }
 };
 </script>
-
 
 <style scoped src="./register.css"></style>
