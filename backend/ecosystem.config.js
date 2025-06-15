@@ -4,26 +4,27 @@ module.exports = {
     {
       name: 'simulacion-api',
       script: './daemon.js',
-      instances: 1, // Puedes usar 'max' para usar todos los núcleos
+      instances: 1,
       autorestart: true,
-      watch: false, // pon true si estás en desarrollo y quieres reinicios automáticos
-      max_memory_restart: '512M',
-
-      // Variables de entorno (puedes omitir esto si usas .env)
+      watch: false,
+      max_memory_restart: '1G',
       env: {
-        NODE_ENV: 'development',
-        PORT: 3000
-      },
-      env_production: {
         NODE_ENV: 'production',
-        PORT: 3000
+        PORT: 3001,
+        DB_HOST: "a2100679b.c3y80kgqitws.us-east-2.rds.amazonaws.com",
+        DB_USER: "postgres",
+        DB_PASSWORD: "postgres",
+        DB_NAME: "simulacion",
+        DB_PORT: "5432",
+        DB_SSL: "true",
+        JWT_SECRET: "tu_super_secreto",
+        FRONTEND_ORIGIN: "https://protipweb.netlify.app"
       },
-
-      // Logs
-      error_file: './logs/err.log',
-      out_file: './logs/out.log',
-      log_file: './logs/combined.log',
-      time: true // agrega timestamp en los logs
+      error_file: "./logs/err.log",
+      out_file: "./logs/out.log",
+      log_file: "./logs/combined.log",
+      log_date_format: "YYYY-MM-DD HH:mm:ss",
+      time: true
     }
   ]
 };
