@@ -148,80 +148,7 @@
 </template>
 
 <script>
-/*
-Clase para representar los servicios de datos para manejo de la sesión
-*/
-class SessionDS {
-  constructor () {
-    this.usuarios = [
-      {
-        id: 1,
-        nombre: 'Agustin Rodriguez Ponce',
-        userName: 'arodriguezp',
-        password: '123456',
-        roles: [1, 2, 3]
-      }
-    ];
-
-    this.response = {
-      mensaje: {
-        codigo: 40,
-        descripcion: 'Ocurrió un error en el servidor'
-      },
-      usuario: {
-        id: 0,
-        nombre: '',
-        userName: '',
-        roles: [0]
-      }
-    };
-  }
-
-  // Método para agregar un nuevo usuario
-  add(usuario) {
-    this.usuarios.push(usuario);
-  }
-
-  // Método para verificar usuario y contraseña
-  verify(userName, password) {
-    return Promise.resolve(this.getUser(userName, password));
-  }
-
-  // Método interno que busca un usuario en la lista
-  getUser(userName, password) {
-    const usuario = this.usuarios.find(
-      item => item.userName === userName && item.password === password
-    );
-
-    if (!usuario) {
-      this.response = {
-        mensaje: {
-          codigo: 40,
-          descripcion: 'Usuario o contraseña incorrectos'
-        },
-        usuario: {
-          id: 0,
-          nombre: '',
-          userName: '',
-          roles: [0]
-        }
-      };
-    } else {
-      this.response = {
-        mensaje: {
-          codigo: 10,
-          descripcion: 'Usuario localizado'
-        },
-        usuario: usuario
-      };
-    }
-
-    return this.response;
-  }
-}
-
-// Crear instancia singleton del servicio de sesión
-const sessionDS = new SessionDS();
+import axios from 'axios'
 
 export default {
   name: 'Login',
@@ -234,7 +161,7 @@ export default {
       formData: {
         email: '',
         username: '',
-        identifier: '', // Para login (nombre de usuario)
+        identifier: '',
         password: '',
         confirmPassword: ''
       }
@@ -243,31 +170,20 @@ export default {
   computed: {
     isFormValid() {
       const { email, username, identifier, password, confirmPassword } = this.formData
-      
-      // Validar contraseña
+
       if (!password?.trim() || password.length < 6) return false
-      
+
       if (this.isRegister) {
-        // Validaciones para registro
         if (!email?.trim() || !username?.trim()) return false
-        
-        // Validar formato de email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!emailRegex.test(email.trim())) return false
-        
-        // Validar longitud mínima de usuario
         if (username.trim().length < 3) return false
-        
-        // Validar que las contraseñas coincidan
         if (password !== confirmPassword) return false
       } else {
-        // Validaciones para login
         if (!identifier?.trim()) return false
-        
-        // El identificador debe tener al menos 3 caracteres
         if (identifier.trim().length < 3) return false
       }
-      
+
       return true
     }
   },
@@ -277,27 +193,21 @@ export default {
       this.clearMessages()
       this.clearForm()
     },
-
     clearMessages() {
       this.errorMessage = ''
       this.successMessage = ''
     },
-
     clearForm() {
-      if (this.isRegister) {
-        // Al cambiar a registro, limpiar identifier
-        this.formData.identifier = ''
-      } else {
-        // Al cambiar a login, limpiar email, username y confirmPassword
-        this.formData.email = ''
-        this.formData.username = ''
-        this.formData.confirmPassword = ''
+      this.formData = {
+        email: '',
+        username: '',
+        identifier: '',
+        password: '',
+        confirmPassword: ''
       }
     },
-
     async handleSubmit() {
       if (!this.isFormValid) return
-
       this.isLoading = true
       this.clearMessages()
 
@@ -308,98 +218,60 @@ export default {
           await this.login()
         }
       } catch (error) {
-        this.errorMessage = error.message || 'Ha ocurrido un error inesperado'
+        this.errorMessage = error.response?.data?.error || error.message || 'Error inesperado'
       } finally {
         this.isLoading = false
       }
     },
-
     async login() {
+      const { identifier, password } = this.formData
       try {
-        const userName = this.formData.identifier.trim()
-        const password = this.formData.password
+        const response = await axios.post('http://localhost:3000/api/users/login', {
+          username: identifier.trim(),
+          password
+        })
 
-        // Usar el servicio de sesión
-        const response = await sessionDS.verify(userName, password)
-        
-        if (response.mensaje.codigo === 10) {
-          // Usuario válido
-          this.successMessage = `¡Bienvenido ${response.usuario.nombre}! Redirigiendo...`
-          
-          setTimeout(() => {
-            this.$emit('login-success', {
-              usuario: response.usuario,
-              userName: userName,
-              timestamp: new Date().toISOString()
-            })
-            // Redirigir al dashboard si tienes Vue Router
-            this.$router.push('/menu')
-          }, 1500)
-        } else {
-          // Credenciales incorrectas
-          throw new Error(response.mensaje.descripcion)
-        }
+        this.successMessage = `¡Bienvenido ${response.data.usuario.nombre}! Redirigiendo...`
+
+        setTimeout(() => {
+          this.$emit('login-success', {
+            usuario: response.data.usuario,
+            timestamp: new Date().toISOString()
+          })
+          this.$router.push('/menu')
+        }, 1500)
       } catch (error) {
-        console.error('Error de login:', error)
-        throw new Error(error.message || 'Error al iniciar sesión')
+        throw new Error(error.response?.data?.error || 'Usuario o contraseña incorrectos')
       }
     },
-
     async register() {
+      const { username, password } = this.formData
       try {
-        // Simular tiempo de procesamiento
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        
-        const newUser = {
-          id: sessionDS.usuarios.length + 1,
-          nombre: this.formData.username, // O podrías agregar un campo nombre completo
-          userName: this.formData.username.trim(),
-          password: this.formData.password,
-          roles: [1] // Rol básico por defecto
-        }
+        await axios.post('http://localhost:3000/api/users/register', {
+          nombre: username, // usando el mismo campo como nombre
+          username: username.trim(),
+          password
+        })
 
-        // Verificar si el usuario ya existe
-        const existingUser = sessionDS.usuarios.find(
-          user => user.userName === newUser.userName
-        )
+        this.successMessage = '¡Cuenta creada exitosamente! Redirigiendo al inicio de sesión...'
 
-        if (existingUser) {
-          throw new Error('Este nombre de usuario ya está en uso')
-        }
-
-        // Agregar el nuevo usuario
-        sessionDS.add(newUser)
-        
-        this.successMessage = '¡Cuenta creada exitosamente! Cambiando a inicio de sesión...'
-        
-        // Cambiar a modo login después del registro exitoso
         setTimeout(() => {
           this.isRegister = false
-          this.formData.email = ''
-          this.formData.username = ''
-          this.formData.password = ''
-          this.formData.confirmPassword = ''
-          this.formData.identifier = newUser.userName // Pre-llenar el usuario recién creado
-          this.successMessage = 'Ahora puedes iniciar sesión con tu usuario'
+          this.formData.identifier = username
+          this.clearForm()
         }, 2000)
       } catch (error) {
-        throw new Error(error.message || 'Error al crear la cuenta')
+        throw new Error(error.response?.data?.error || 'Error al crear la cuenta')
       }
     },
-
     handleForgotPassword() {
-      // Aquí iría la lógica para recuperar contraseña
       this.$emit('forgot-password-requested')
       alert('Funcionalidad de recuperación de contraseña - Por implementar')
     }
   },
-
-  // Limpiar mensajes cuando el componente se desmonta
   beforeUnmount() {
     this.clearMessages()
   },
-
-  // Limpiar mensajes cuando se cambia de ruta (si se usa Vue Router)
   beforeRouteLeave() {
     this.clearMessages()
   }
