@@ -99,14 +99,13 @@
         </div>
 
         <!-- Enlace para alternar entre login y registro -->
-<router-link
-  v-if="!isLoading"
-  :to="isRegister ? '/login' : '/register'"
-  class="toggle-login-link"
->
-  {{ isRegister ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate' }}
-</router-link>
-
+        <router-link
+          v-if="!isLoading"
+          :to="isRegister ? '/login' : '/register'"
+          class="toggle-login-link"
+        >
+          {{ isRegister ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate' }}
+        </router-link>
 
         <!-- Mensajes de error y éxito -->
         <div v-if="errorMessage" class="error-message">
@@ -226,7 +225,7 @@ export default {
     async login() {
       const { identifier, password } = this.formData
       try {
-        const response = await axios.post('http://localhost:3001/api/users/login', {
+        const response = await axios.post(`${process.env.VUE_APP_API_URL}api/users/login`, {
           username: identifier.trim(),
           password
         })
@@ -247,7 +246,7 @@ export default {
     async register() {
       const { username, password } = this.formData
       try {
-        await axios.post('http://localhost:3001/api/users/register', {
+        await axios.post(`${process.env.VUE_APP_API_URL}api/users/register`, {
           nombre: username, // usando el mismo campo como nombre
           username: username.trim(),
           password
