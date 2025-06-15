@@ -100,7 +100,7 @@
 
         <!-- Enlace para alternar entre login y registro -->
         <a
-          href="#"
+          href="/register"
           @click.prevent="toggleLoginType"
           class="toggle-login-link"
           v-if="!isLoading"
