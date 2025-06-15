@@ -149,6 +149,9 @@
 <script>
 import axios from 'axios'
 
+// Extraemos la URL base del backend desde la variable de entorno
+const API_URL = process.env.VUE_APP_API_URL
+
 export default {
   name: 'Login',
   data() {
@@ -225,7 +228,7 @@ export default {
     async login() {
       const { identifier, password } = this.formData
       try {
-        const response = await axios.post(`${process.env.VUE_APP_API_URL}api/users/login`, {
+        const response = await axios.post(`${API_URL}api/users/login`, {
           username: identifier.trim(),
           password
         })
@@ -246,7 +249,7 @@ export default {
     async register() {
       const { username, password } = this.formData
       try {
-        await axios.post(`${process.env.VUE_APP_API_URL}api/users/register`, {
+        await axios.post(`${API_URL}api/users/register`, {
           nombre: username, // usando el mismo campo como nombre
           username: username.trim(),
           password
