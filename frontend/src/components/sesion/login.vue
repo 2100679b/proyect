@@ -121,6 +121,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'Login',
   data() {
@@ -138,12 +140,12 @@ export default {
         password: '',
         confirmPassword: ''
       }
-    }
+    };
   },
   computed: {
     isFormValid() {
-      const { email, username, identifier, password, confirmPassword } = this.formData
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      const { email, username, identifier, password, confirmPassword } = this.formData;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       if (this.isRegister) {
         return (
@@ -151,121 +153,145 @@ export default {
           username.trim().length >= 3 &&
           password.length >= 8 &&
           password === confirmPassword
-        )
+        );
       } else {
         return this.loginByEmail
           ? emailRegex.test(identifier.trim()) && password.length > 0
-          : identifier.trim().length >= 3 && password.length > 0
+          : identifier.trim().length >= 3 && password.length > 0;
       }
     }
   },
   created() {
-    this.isRegister = this.$route.path === '/register'
+    this.isRegister = this.$route.path === '/register';
   },
   watch: {
     '$route'(to) {
-      this.isRegister = to.path === '/register'
-      this.clearMessages()
-      this.clearForm()
+      this.isRegister = to.path === '/register';
+      this.clearMessages();
+      this.clearForm();
     }
   },
   methods: {
     clearMessages() {
-      this.errorMessage = ''
-      this.successMessage = ''
-      this.errors = {}
+      this.errorMessage = '';
+      this.successMessage = '';
+      this.errors = {};
     },
     clearForm() {
       for (const key in this.formData) {
-        this.formData[key] = ''
+        this.formData[key] = '';
       }
     },
     toggleLoginMethod() {
-      this.loginByEmail = !this.loginByEmail
-      this.formData.identifier = ''
-      this.clearMessages()
+      this.loginByEmail = !this.loginByEmail;
+      this.formData.identifier = '';
+      this.clearMessages();
     },
     validateForm() {
-      const errors = {}
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      const errors = {};
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       if (this.isRegister) {
         if (!this.formData.email.trim()) {
-          errors.email = 'El correo electrónico es obligatorio'
+          errors.email = 'El correo electrónico es obligatorio';
         } else if (!emailRegex.test(this.formData.email.trim())) {
-          errors.email = 'Formato de correo no válido'
+          errors.email = 'Formato de correo no válido';
         }
 
         if (!this.formData.username.trim()) {
-          errors.username = 'El nombre de usuario es obligatorio'
+          errors.username = 'El nombre de usuario es obligatorio';
         } else if (this.formData.username.trim().length < 3) {
-          errors.username = 'Debe tener al menos 3 caracteres'
+          errors.username = 'Debe tener al menos 3 caracteres';
         }
 
         if (!this.formData.password) {
-          errors.password = 'La contraseña es obligatoria'
+          errors.password = 'La contraseña es obligatoria';
         } else if (this.formData.password.length < 8) {
-          errors.password = 'Debe tener al menos 8 caracteres'
+          errors.password = 'Debe tener al menos 8 caracteres';
         }
 
         if (!this.formData.confirmPassword) {
-          errors.confirmPassword = 'Confirma la contraseña'
+          errors.confirmPassword = 'Confirma la contraseña';
         } else if (this.formData.password !== this.formData.confirmPassword) {
-          errors.confirmPassword = 'Las contraseñas no coinciden'
+          errors.confirmPassword = 'Las contraseñas no coinciden';
         }
-
       } else {
         if (!this.formData.identifier.trim()) {
-          errors.identifier = this.loginByEmail ? 'El correo es obligatorio' : 'El usuario es obligatorio'
+          errors.identifier = this.loginByEmail ? 'El correo es obligatorio' : 'El usuario es obligatorio';
         } else if (this.loginByEmail && !emailRegex.test(this.formData.identifier.trim())) {
-          errors.identifier = 'Formato de correo no válido'
+          errors.identifier = 'Formato de correo no válido';
         }
 
         if (!this.formData.password) {
-          errors.password = 'La contraseña es obligatoria'
+          errors.password = 'La contraseña es obligatoria';
         }
       }
 
-      this.errors = errors
-      return Object.keys(errors).length === 0
+      this.errors = errors;
+      return Object.keys(errors).length === 0;
     },
     async handleSubmit() {
-      this.clearMessages()
+      this.clearMessages();
 
-      if (!this.validateForm()) return
+      if (!this.validateForm()) return;
 
-      this.isLoading = true
+      this.isLoading = true;
 
       try {
         if (this.isRegister) {
-          await this.register()
+          await this.register();
         } else {
-          await this.login()
+          await this.login();
         }
       } catch (err) {
-        this.errorMessage = err.message || 'Error inesperado'
+        this.errorMessage = err.message || 'Error inesperado';
       } finally {
-        this.isLoading = false
+        this.isLoading = false;
       }
     },
     async register() {
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      this.successMessage = 'Cuenta creada con éxito. Redirigiendo...'
-      this.clearForm()
-      await this.$router.push('/login')
+      try {
+        const userData = {
+          nombre: this.formData.username,
+          username: this.formData.username,
+          password: this.formData.password,
+          roles: [1],
+          registro_usuario: 0,
+        };
+
+        const response = await axios.post('http://localhost:3000/api/users/register', userData);
+        this.successMessage = response.data.mensaje || 'Cuenta creada con éxito. Redirigiendo...';
+        this.clearForm();
+        setTimeout(() => this.$router.push('/login'), 1500);
+      } catch (error) {
+        this.errorMessage = error.response?.data?.error || 'Error al registrar usuario';
+      }
     },
     async login() {
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      this.successMessage = 'Inicio de sesión exitoso.'
-      this.clearForm()
-      // Aquí podrías redirigir al dashboard, por ejemplo:
-      // await this.$router.push('/dashboard')
+      try {
+        const loginData = {
+          identifier: this.formData.identifier,
+          password: this.formData.password,
+          loginByEmail: this.loginByEmail,
+        };
+
+        const response = await axios.post('http://localhost:3000/api/users/login', loginData);
+
+        this.successMessage = 'Inicio de sesión exitoso.';
+        this.clearForm();
+
+        // Aquí puedes manejar el token o la sesión
+        // localStorage.setItem('token', response.data.token);
+        // this.$router.push('/dashboard');
+      } catch (error) {
+        this.errorMessage = error.response?.data?.error || 'Error en inicio de sesión';
+      }
     },
     handleForgotPassword() {
-      alert('Funcionalidad aún no implementada.')
+      alert('Funcionalidad aún no implementada.');
     }
   }
-}
+};
 </script>
 
 <style scoped src="./login.css"></style>

@@ -1,0 +1,34 @@
+/* ViewDispositivos.css */
+
+.view-dispositivos-container {
+  padding: 20px;
+}
+
+.view-dispositivos-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.card-title {
+  font-weight: bold;
+  color: #343a40;
+}
+
+.control-btn {
+  font-size: 14px;
+  padding: 8px 16px;
+}
+
+.alert-info {
+  border-radius: 8px;
+}
+
+.alert-title {
+  font-weight: bold;
+}

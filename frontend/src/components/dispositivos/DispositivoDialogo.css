@@ -1,0 +1,56 @@
+/* DispositivoDialogo.css */
+.modal-content {
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+  font-weight: bold;
+  color: #343a40;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.table {
+  margin-bottom: 20px;
+}
+
+.table th,
+.table td {
+  vertical-align: middle;
+  text-align: center;
+}
+
+.table thead th {
+  background-color: #e9ecef;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table tfoot th {
+  background-color: #f1f3f5;
+  font-weight: bold;
+}
+
+.text-success {
+  color: #28a745 !important;
+}
+
+.text-warning {
+  color: #ffc107 !important;
+}
+
+.text-danger {
+  color: #dc3545 !important;
+}
+
+.text-body-secondary {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
