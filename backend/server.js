@@ -19,5 +19,3 @@ process.on('SIGTERM', () => {
   console.log('\n📤 Señal SIGTERM recibida. Cerrando el servidor...');
   process.exit(0);
 });
-
-prueba
