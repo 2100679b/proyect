@@ -1,3 +1,4 @@
+// index.js
 require('dotenv').config();
 
 const express = require('express');
@@ -29,49 +30,97 @@ const pool = new Pool({
 // Middleware
 app.use(express.json());
 
-// Rutas
+// --- Rutas ---
 app.get('/', (req, res) => {
   res.send('Servidor Express funcionando');
 });
 
-// Test de conexión a BD (opcional)
+// Test de conexión a BD
 app.get('/health', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');
-    res.json({ 
-      status: 'OK', 
+    res.json({
+      status: 'OK',
       database: 'Connected',
-      timestamp: result.rows[0].now 
+      timestamp: result.rows[0].now
     });
   } catch (error) {
-    res.status(500).json({ 
-      status: 'ERROR', 
+    // ⚠️ Importante: Loggear el error para depuración
+    console.error('❌ Error de conexión a la base de datos en /health:', error.message);
+    res.status(500).json({
+      status: 'ERROR',
       database: 'Disconnected',
-      error: error.message 
+      error: error.message
     });
   }
 });
 
-// Iniciar el servidor solo si este archivo se ejecuta directamente
-if (require.main === module) {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Servidor iniciado en http://0.0.0.0:${PORT}`);
-    console.log(`📅 ${new Date().toLocaleString()}`);
-    console.log(`🌱 Entorno: ${NODE_ENV || 'development'}`);
-  });
+// --- RUTA DE REGISTRO (EJEMPLO - DEBES AÑADIR TU LÓGICA COMPLETA) ---
+// Aquí es donde probablemente tenías el error 500 original
+app.post('/api/register', async (req, res, next) => {
+    console.log('📤 Recibiendo solicitud de registro. Datos:', req.body);
+    try {
+        const { email, password, username } = req.body; // Asumiendo estos campos
+        
+        // --- VALIDACIÓN Y LÓGICA DE NEGOCIO ---
+        if (!email || !password || !username) {
+            return res.status(400).json({ message: 'Todos los campos (email, password, username) son requeridos.' });
+        }
 
-  // Manejo graceful de señales
-  process.on('SIGINT', () => {
-    console.log('\n📤 Señal SIGINT recibida. Cerrando el servidor...');
-    process.exit(0);
-  });
+        // Aquí iría tu lógica real para interactuar con la base de datos (por ejemplo, con `pool.query`)
+        // EJEMPLO: Insertar un nuevo usuario (ADAPTA ESTO A TU ESQUEMA Y LÓGICA REAL)
+        // const queryText = 'INSERT INTO users(username, email, password) VALUES($1, $2, $3) RETURNING *';
+        // const values = [username, email, password]; // Asegúrate de hashear la contraseña en producción
+        // const newUserResult = await pool.query(queryText, values);
+        // const newUser = newUserResult.rows[0];
 
-  process.on('SIGTERM', () => {
-    console.log('\n📤 Señal SIGTERM recibida. Cerrando el servidor...');
-    process.exit(0);
-  });
-}
+        // ** Simulando un error en la base de datos para ver el log **
+        // Descomenta la siguiente línea para simular un error 500 y ver cómo se registra
+        // throw new Error('Error simulado al guardar en la base de datos.');
 
-// Exportar app y pool
-module.exports = { app, pool };
+        console.log(`✅ Usuario ${username} registrado exitosamente.`);
+        res.status(201).json({ message: 'Usuario registrado exitosamente.' /*, user: newUser */ });
+
+    } catch (error) {
+        // Pasa el error al middleware de manejo de errores de Express para loggear y responder
+        console.error('❌ Error capturado en /api/register:', error);
+        next(error); 
+    }
+});
+// --- FIN RUTA DE REGISTRO ---
+
+
+// --- MIDDLEWARE DE MANEJO DE ERRORES GLOBAL DE EXPRESS ---
+// ESTE DEBE SER EL ÚLTIMO app.use() DESPUÉS DE TODAS TUS RUTAS
+app.use((err, req, res, next) => {
+    // ¡ESTA ES LA LÍNEA CRÍTICA PARA LA DEPURACIÓN!
+    console.error('🔥 Error interno del servidor (capturado por middleware):', err.stack || err);
+
+    if (res.headersSent) {
+        return next(err);
+    }
+
+    const errorMessage = process.env.NODE_ENV === 'production'
+        ? 'Ocurrió un error interno del servidor.'
+        : err.message;
+
+    res.status(500).json({
+        message: errorMessage,
+        // Solo envía el stack trace en desarrollo
+        ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
+    });
+});
+// --- FIN MIDDLEWARE DE MANEJO DE ERRORES ---
+
+
+// Ya no iniciamos el servidor aquí, lo hace daemon.js
+// El bloque `if (require.main === module)` no es necesario para PM2/daemon
+// porque `daemon.js` es quien realmente "inicia" el proceso de Node.js
+// cargando este archivo.
+
+// ⚠️ IMPORTANTE: Exporta SÓLO la instancia de Express `app`
+module.exports = app;
+
+// Si necesitas el pool en otros módulos, puedes exportarlo separadamente
+// o pasar el pool a tus rutas como una dependencia.
+// Ejemplo: module.exports.pool = pool; y luego importarlo con require('./index').pool;
