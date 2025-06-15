@@ -99,14 +99,14 @@
         </div>
 
         <!-- Enlace para alternar entre login y registro -->
-        <a
-          href="/register"
-          @click.prevent="toggleLoginType"
-          class="toggle-login-link"
-          v-if="!isLoading"
-        >
-          {{ isRegister ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate' }}
-        </a>
+<router-link
+  v-if="!isLoading"
+  :to="isRegister ? '/login' : '/register'"
+  class="toggle-login-link"
+>
+  {{ isRegister ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate' }}
+</router-link>
+
 
         <!-- Mensajes de error y éxito -->
         <div v-if="errorMessage" class="error-message">
