@@ -2,6 +2,10 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+app.use(cors({
+  origin: 'http://localhost:8080', // Cambia "8080" por el puerto de tu frontend
+  methods: ['GET', 'POST'],
+}));
 const morgan = require('morgan');
 
 const usersRoutes = require('./routes/users');
