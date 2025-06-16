@@ -323,6 +323,155 @@ export default {
 };
 </script>
 
+<style scoped>
+/* Estilos básicos - personaliza según tu diseño */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  padding: 20px;
+}
 
+.login-box {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+}
 
-<style scoped src="./login.css"></style>
+.login-title {
+  font-size: 28px;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.login-subtitle {
+  font-size: 16px;
+  color: #7f8c8d;
+  margin-bottom: 30px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  text-align: left;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.form-input:focus {
+  border-color: #3498db;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.form-input.error {
+  border-color: #e74c3c;
+}
+
+.field-error {
+  display: block;
+  margin-top: 6px;
+  color: #e74c3c;
+  font-size: 14px;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 6px;
+  color: #7f8c8d;
+  font-size: 14px;
+}
+
+.toggle-links {
+  margin-top: 10px;
+}
+
+.toggle-login-link {
+  color: #3498db;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.toggle-login-link:hover {
+  text-decoration: underline;
+}
+
+.error-message {
+  color: #e74c3c;
+  background-color: #fef0f0;
+  padding: 12px;
+  border-radius: 6px;
+  margin-top: 15px;
+  border: 1px solid #fde2e2;
+}
+
+.success-message {
+  color: #27ae60;
+  background-color: #f0f9eb;
+  padding: 12px;
+  border-radius: 6px;
+  margin-top: 15px;
+  border: 1px solid #e1f3d8;
+}
+
+.submit-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 20px;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background-color: #2980b9;
+}
+
+.submit-btn:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.links-container {
+  margin-top: 25px;
+}
+
+.additional-link {
+  color: #7f8c8d;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.additional-link:hover {
+  text-decoration: underline;
+  color: #3498db;
+}
+</style>
