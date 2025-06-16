@@ -40,7 +40,7 @@
 </template>
       
 <script>
-import sessionStorage from '@/servicios/SessionStore'
+
 export default  {
     name: 'RegistroDispositivo',
     components: {
