@@ -11,19 +11,19 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3001,
-        DB_HOST: "a2100679b.c3y80kgqitws.us-east-2.rds.amazonaws.com",
-        DB_USER: "postgres",
-        DB_PASSWORD: "postgres",
-        DB_NAME: "simulacion",
-        DB_PORT: "5432",
-        DB_SSL: "true",
-        JWT_SECRET: "tu_super_secreto",
-        FRONTEND_ORIGIN: "https://protipweb.netlify.app"
+        DB_HOST: 'a2100679b.c3y80kgqitws.us-east-2.rds.amazonaws.com',
+        DB_USER: 'postgres',
+        DB_PASSWORD: 'postgres',
+        DB_NAME: 'simulacion',
+        DB_PORT: '5432',
+        DB_SSL: 'true',
+        JWT_SECRET: 'tu_super_secreto',
+        FRONTEND_ORIGIN: 'https://protipweb.netlify.app'
       },
-      error_file: "./logs/err.log",
-      out_file: "./logs/out.log",
-      log_file: "./logs/combined.log",
-      log_date_format: "YYYY-MM-DD HH:mm:ss",
+      error_file: './logs/err.log',
+      out_file: './logs/out.log',
+      log_file: './logs/combined.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss',
       time: true
     }
   ]
