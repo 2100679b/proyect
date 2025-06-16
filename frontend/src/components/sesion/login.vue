@@ -1,49 +1,126 @@
 <template>
-  <div>
-    <h2>Iniciar Sesión</h2>
-    <form @submit.prevent="login">
-      <input v-model="username" placeholder="Usuario" required />
-      <input v-model="password" type="password" placeholder="Contraseña" required />
-      <button type="submit">Iniciar Sesión</button>
-    </form>
-    <p v-if="message">{{ message }}</p>
+  <div class="login-container">
+    <div class="login-box">
+      <h1 class="login-title">{{ isRegister ? 'Registro' : 'Iniciar Sesión' }}</h1>
+      <p class="login-subtitle">
+        {{ isRegister ? 'Crea una cuenta nueva' : 'Ingresa a tu cuenta' }}
+      </p>
+
+      <form @submit.prevent="isRegister ? register() : login()" class="login-form">
+        <div v-if="isRegister" class="form-group">
+          <label>Email:</label>
+          <input v-model="formData.email" type="email" required />
+        </div>
+
+        <div class="form-group">
+          <label>{{ isRegister ? 'Nombre de usuario:' : 'Usuario o correo:' }}</label>
+          <input
+            :value="isRegister ? formData.username : formData.identifier"
+            @input="updateInput"
+            type="text"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Contraseña:</label>
+          <input v-model="formData.password" type="password" required />
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="submit-btn">
+            {{ isRegister ? 'Registrarse' : 'Iniciar Sesión' }}
+          </button>
+          <button type="button" class="toggle-btn" @click="toggleForm">
+            {{ isRegister ? 'Ya tengo cuenta' : 'Crear cuenta' }}
+          </button>
+        </div>
+      </form>
+
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+      <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
+    </div>
   </div>
 </template>
 
 <script>
 import axios from 'axios';
 
+const API_URL = 'https://18.119.167.171:3001/api/users';
+
 export default {
+  name: 'Login',
   data() {
     return {
-      username: '',
-      password: '',
-      message: ''
+      isRegister: false,
+      formData: {
+        email: '',
+        username: '',
+        password: '',
+        identifier: ''
+      },
+      errorMessage: '',
+      successMessage: ''
     };
   },
   methods: {
-    async login() {
+    updateInput(event) {
+      if (this.isRegister) {
+        this.formData.username = event.target.value;
+      } else {
+        this.formData.identifier = event.target.value;
+      }
+    },
+    toggleForm() {
+      this.isRegister = !this.isRegister;
+      this.clearForm();
+    },
+    clearForm() {
+      this.formData = {
+        email: '',
+        username: '',
+        password: '',
+        identifier: ''
+      };
+      this.errorMessage = '';
+      this.successMessage = '';
+    },
+    async register() {
       try {
-        const response = await axios.post('http://localhost:3001/api/users/login', {
-          username: this.username,
-          password: this.password
+        const res = await axios.post(`${API_URL}/register`, {
+          email: this.formData.email,
+          username: this.formData.username,
+          password: this.formData.password
         });
 
-        // Guardar el token en localStorage
-        localStorage.setItem('token', response.data.token);
+        this.successMessage = res.data.message;
+        this.clearForm();
+        setTimeout(() => {
+          this.isRegister = false;
+        }, 2000);
+      } catch (err) {
+        this.errorMessage = err.response?.data?.error || 'Error al registrar';
+      }
+    },
+    async login() {
+      try {
+        const res = await axios.post(`${API_URL}/login`, {
+          identifier: this.formData.identifier,
+          password: this.formData.password
+        });
 
-        // Configurar el token en las cabeceras de Axios para futuras solicitudes
-        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
-
-        // Mostrar mensaje de bienvenida
-        this.message = response.data.mensaje;
-
-        // Redirigir al dashboard
-        this.$router.push('/dashboard');
-      } catch (error) {
-        this.message = error.response?.data?.error || 'Error al iniciar sesión';
+        localStorage.setItem('token', res.data.token);
+        this.successMessage = res.data.message;
+        this.clearForm();
+        setTimeout(() => {
+          this.$router.push('/dashboard');
+        }, 1500);
+      } catch (err) {
+        this.errorMessage = err.response?.data?.error || 'Error al iniciar sesión';
       }
     }
   }
 };
 </script>
+
+<style scoped src="./login.css"></style>

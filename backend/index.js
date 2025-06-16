@@ -1,43 +1,36 @@
-// index.js (versión mejorada)
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-app.use(cors({
-  origin: 'http://localhost:8080', // Cambia "8080" por el puerto de tu frontend
-  methods: ['GET', 'POST'],
-}));
 const morgan = require('morgan');
 
 const usersRoutes = require('./routes/users');
-const app = express();
+const app = express(); // ← DEBE ir antes de app.use()
 
-// Configuración de CORS
+// CORS
 const corsOptions = {
-  origin: process.env.FRONTEND_ORIGIN || '*', // Especifica el origen en producción
-  credentials: true, // Habilita cookies/credenciales si es necesario
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos HTTP permitidos
+  origin: process.env.FRONTEND_ORIGIN || '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
 };
 app.use(cors(corsOptions));
 
 // Middlewares
-app.use(express.json()); // Parsea solicitudes JSON
-app.use(morgan('dev')); // Logs en formato 'dev' (cambia a 'combined' en producción)
+app.use(express.json());
+app.use(morgan('dev'));
 
 // Rutas
 app.use('/api/users', usersRoutes);
 
-// Ruta base de prueba
 app.get('/', (req, res) => {
   res.json({ mensaje: '🚀 Backend activo y funcionando' });
 });
 
-// Manejo de errores global
 app.use((err, req, res, next) => {
-  console.error(err.stack); // Registra el error en la consola
+  console.error(err.stack);
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-// ============================
-// 🚀 EXPORTA LA APP (NO INICIES EL SERVIDOR)
-// ============================
-module.exports = app;
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`🚀 Backend escuchando en puerto ${PORT}`);
+});
