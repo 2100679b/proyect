@@ -140,11 +140,20 @@ export default {
 
         localStorage.setItem('token', res.data.token);
         this.successMessage = res.data.message || '¡Inicio de sesión exitoso!';
+
+        const userName = this.formData.identifier;
+
         this.clearForm();
-        
+
         setTimeout(() => {
+          this.$emit('login-success', {
+            usuario: res.data.usuario || null,
+            userName: userName,
+            timestamp: new Date().toISOString()
+          });
           this.$router.push('/menu');
         }, 1500);
+
       } catch (err) {
         this.errorMessage = err.response?.data?.error || 'Error al iniciar sesión';
         console.error('Error en login:', err);
