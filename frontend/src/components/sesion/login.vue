@@ -8,34 +8,51 @@
 
       <form @submit.prevent="isRegister ? register() : login()" class="login-form">
         <div v-if="isRegister" class="form-group">
-          <label>Email:</label>
-          <input v-model="formData.email" type="email" required />
+          <label class="form-label">Email:</label>
+          <input 
+            v-model="formData.email" 
+            type="email" 
+            class="form-input"
+            placeholder="tu-email@ejemplo.com"
+            required 
+          />
         </div>
 
         <div class="form-group">
-          <label>{{ isRegister ? 'Nombre de usuario:' : 'Usuario o correo:' }}</label>
+          <label class="form-label">{{ isRegister ? 'Nombre de usuario:' : 'Usuario o correo:' }}</label>
           <input
             :value="isRegister ? formData.username : formData.identifier"
             @input="updateInput"
             type="text"
+            class="form-input"
+            :placeholder="isRegister ? 'Tu nombre de usuario' : 'Usuario o email'"
             required
           />
         </div>
 
         <div class="form-group">
-          <label>Contraseña:</label>
-          <input v-model="formData.password" type="password" required />
+          <label class="form-label">Contraseña:</label>
+          <input 
+            v-model="formData.password" 
+            type="password" 
+            class="form-input"
+            placeholder="Tu contraseña"
+            required 
+          />
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="submit-btn">
-            {{ isRegister ? 'Registrarse' : 'Iniciar Sesión' }}
-          </button>
-          <button type="button" class="toggle-btn" @click="toggleForm">
-            {{ isRegister ? 'Ya tengo cuenta' : 'Crear cuenta' }}
+          <button type="submit" class="submit-btn" :disabled="isLoading">
+            {{ isLoading ? 'Procesando...' : (isRegister ? 'Registrarse' : 'Iniciar Sesión') }}
           </button>
         </div>
       </form>
+
+      <div class="links-container">
+        <a href="#" class="toggle-login-link" @click.prevent="toggleForm">
+          {{ isRegister ? 'Ya tengo cuenta' : 'Crear cuenta nueva' }}
+        </a>
+      </div>
 
       <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
       <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
@@ -53,6 +70,7 @@ export default {
   data() {
     return {
       isRegister: false,
+      isLoading: false,
       formData: {
         email: '',
         username: '',
@@ -86,6 +104,10 @@ export default {
       this.successMessage = '';
     },
     async register() {
+      this.isLoading = true;
+      this.errorMessage = '';
+      this.successMessage = '';
+
       try {
         const res = await axios.post(`${API_URL}/register`, {
           email: this.formData.email,
@@ -93,16 +115,23 @@ export default {
           password: this.formData.password
         });
 
-        this.successMessage = res.data.message;
+        this.successMessage = res.data.message || '¡Registro exitoso!';
         this.clearForm();
         setTimeout(() => {
           this.isRegister = false;
         }, 2000);
       } catch (err) {
-        this.errorMessage = err.response?.data?.error || 'Error al registrar';
+        this.errorMessage = err.response?.data?.error || 'Error al registrar usuario';
+        console.error('Error en registro:', err);
+      } finally {
+        this.isLoading = false;
       }
     },
     async login() {
+      this.isLoading = true;
+      this.errorMessage = '';
+      this.successMessage = '';
+
       try {
         const res = await axios.post(`${API_URL}/login`, {
           identifier: this.formData.identifier,
@@ -110,13 +139,17 @@ export default {
         });
 
         localStorage.setItem('token', res.data.token);
-        this.successMessage = res.data.message;
+        this.successMessage = res.data.message || '¡Inicio de sesión exitoso!';
         this.clearForm();
+        
         setTimeout(() => {
           this.$router.push('/dashboard');
         }, 1500);
       } catch (err) {
         this.errorMessage = err.response?.data?.error || 'Error al iniciar sesión';
+        console.error('Error en login:', err);
+      } finally {
+        this.isLoading = false;
       }
     }
   }
