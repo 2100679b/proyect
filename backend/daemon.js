@@ -33,7 +33,7 @@ try {
 // 3. Iniciar servidor
 console.log('🔹 Iniciando servidor Express...');
 const server = app.listen(PORT, HOST, () => {
-  console.log(`✅ Servidor backend activo en http://${HOST}:${PORT}`);
+  console.log(`✅ Servidor backend activo en https://${HOST}:${PORT}`);
   console.log(`📅 Inicio: ${new Date().toLocaleString()}`);
   console.log(`🌎 Entorno: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔄 PID: ${process.pid}`);
