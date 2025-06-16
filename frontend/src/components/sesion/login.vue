@@ -63,7 +63,7 @@
 <script>
 import axios from 'axios';
 
-const API_URL = 'https://18.119.167.171:3001/api/users';
+const API_URL = 'http://18.119.167.171:3001/api/users';
 
 export default {
   name: 'Login',
@@ -156,4 +156,3 @@ export default {
 };
 </script>
 
-<style scoped src="./login.css"></style>
