@@ -1,10 +1,10 @@
 require('dotenv').config();
 const express = require('express');
+const app = express();
 const cors = require('cors');
 const morgan = require('morgan');
 
 const usersRoutes = require('./routes/users');
-const app = express(); // ← DEBE ir antes de app.use()
 
 // CORS
 const corsOptions = {
@@ -34,3 +34,6 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`🚀 Backend escuchando en puerto ${PORT}`);
 });
+
+
+module.exports = app;
