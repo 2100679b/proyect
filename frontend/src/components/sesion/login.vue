@@ -143,7 +143,7 @@ export default {
         this.clearForm();
         
         setTimeout(() => {
-          this.$router.push('/dashboard');
+          this.$router.push('/menu');
         }, 1500);
       } catch (err) {
         this.errorMessage = err.response?.data?.error || 'Error al iniciar sesión';
