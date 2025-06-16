@@ -12,7 +12,7 @@ module.exports = {
       kill_timeout: 5000,
       env: {
         NODE_ENV: 'production',
-        PORT: 3001,
+        PORT: 3002, // ← Cambiar a 3002
         DB_HOST: 'a2100679b.c3y80kgqitws.us-east-2.rds.amazonaws.com',
         DB_USER: 'postgres',
         DB_PASSWORD: 'postgres',

@@ -30,10 +30,11 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`🚀 Backend escuchando en puerto ${PORT}`);
-});
+// ❌ QUITAR ESTAS LÍNEAS - El daemon.js se encarga de esto
+// const PORT = process.env.PORT || 3001;
+// app.listen(PORT, () => {
+//   console.log(`🚀 Backend escuchando en puerto ${PORT}`);
+// });
 
-
+// ✅ Solo exportar la app, SIN iniciar el servidor
 module.exports = app;
