@@ -178,4 +178,4 @@ export default {
 }
 </script>
 
-<style scoped src="@/assets/styles.css"></style>
+<style scoped src="@/assets/RegistroDispositivo.css"></style>
