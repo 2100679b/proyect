@@ -1,26 +1,11 @@
--- Script de Base de Datos PostgreSQL - Sistema de Simulación
--- Configuración inicial de roles, usuarios y estructura de base de datos
-
--- ============================================
--- CREACIÓN DE ROLES Y USUARIOS
--- ============================================
-
--- Crear el rol administrativo
+-- Crear rol y usuario administrador
 CREATE ROLE adminrole;
-
--- Crear usuario administrativo con contraseña encriptada
 CREATE USER adminuno WITH ENCRYPTED PASSWORD 'pwod.2025' IN ROLE "adminrole";
 
--- Otorgar el atributo CREATEDB al rol adminrole
 ALTER ROLE adminrole CREATEDB;
-
--- Permitir que postgres pueda usar el rol adminrole
 GRANT adminrole TO postgres;
 
--- ============================================
--- CREACIÓN DE BASE DE DATOS
--- ============================================
-
+-- Crear base de datos
 CREATE DATABASE simulacion
   WITH OWNER = adminrole
   ENCODING = 'UTF8'
@@ -29,66 +14,58 @@ CREATE DATABASE simulacion
   CONNECTION LIMIT = -1
   TEMPLATE = template0;
 
--- Otorgar todos los privilegios en la base de datos al rol adminrole
 GRANT ALL PRIVILEGES ON DATABASE simulacion TO adminrole;
 
--- Conectar a la base de datos simulación
-\c simulación
+-- Conectar a la base
+\c simulacion
 
--- ============================================
--- INSTALACIÓN DE EXTENSIONES
--- ============================================
+-- Extensiones necesarias
+CREATE EXTENSION IF NOT EXISTS dblink;
+CREATE EXTENSION IF NOT EXISTS unaccent;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE EXTENSION dblink;
-CREATE EXTENSION unaccent;
-CREATE EXTENSION "uuid-ossp";
-
--- ============================================
--- ESQUEMA DE SEGURIDAD
--- ============================================
-
--- Crear esquema de seguridad
+-- Crear esquema seguridad
 CREATE SCHEMA IF NOT EXISTS seguridad AUTHORIZATION adminrole;
 
--- Tabla roles (sin TABLESPACE para RDS)
+-- Tabla de roles
 CREATE TABLE IF NOT EXISTS seguridad.roles (
-    id integer NOT NULL primary key,
-    role character varying(100) COLLATE pg_catalog."default",
+    id integer NOT NULL PRIMARY KEY,
+    role character varying(100),
     perfil json[],
-    descripcion text COLLATE pg_catalog."default",
-    fecha_registro timestamp not null default current_timestamp
+    descripcion text,
+    fecha_registro timestamp NOT NULL DEFAULT current_timestamp
 );
 
--- Configurar propietario y permisos para tabla roles
-ALTER TABLE seguridad.roles OWNER to adminrole;
+ALTER TABLE seguridad.roles OWNER TO adminrole;
 GRANT ALL ON TABLE seguridad.roles TO adminrole;
 
--- Tabla usuarios
+-- Insertar rol base (id = 1)
+INSERT INTO seguridad.roles (id, role, perfil, descripcion)
+VALUES (1, 'usuario', ARRAY[]::json[], 'Rol por defecto para nuevos usuarios')
+ON CONFLICT DO NOTHING;
+
+-- Tabla de usuarios
 CREATE TABLE IF NOT EXISTS seguridad.usuarios (
-    id serial NOT NULL PRIMARY KEY,
-    nombre character varying(100) NOT NULL,
+    id serial PRIMARY KEY,
+    email character varying(100) NOT NULL,
     username character varying(100) NOT NULL,
     password character varying(100) NOT NULL,
     roles integer[],
-    registro_fecha timestamp not null default current_timestamp,
-    registro_usuario integer not null default 0,
-    constraint uk_nombre_usuarios unique (nombre)
+    registro_fecha timestamp NOT NULL DEFAULT current_timestamp,
+    registro_usuario integer NOT NULL DEFAULT 0,
+    CONSTRAINT uk_email UNIQUE (email),
+    CONSTRAINT uk_username UNIQUE (username)
 );
 
--- Configurar propietario y permisos para tabla usuarios
-ALTER TABLE seguridad.usuarios OWNER to adminrole;
+ALTER TABLE seguridad.usuarios OWNER TO adminrole;
 GRANT ALL ON TABLE seguridad.usuarios TO adminrole;
 
--- ============================================
--- ESQUEMA DE SISTEMAS
--- ============================================
-
--- Crear esquema de sistemas
+-- Crear esquema sistemas
 CREATE SCHEMA IF NOT EXISTS sistemas AUTHORIZATION adminrole;
 
--- Tabla dispositivos (con constraint corregido)
+-- Tabla de dispositivos
 CREATE TABLE IF NOT EXISTS sistemas.dispositivos (
-    id serial NOT NULL PRIMARY KEY,
+    id serial PRIMARY KEY,
     nombre character varying(100) NOT NULL,
     ubicacion character varying(100) NOT NULL,
     coordenadas character varying(100) NOT NULL,
@@ -96,12 +73,11 @@ CREATE TABLE IF NOT EXISTS sistemas.dispositivos (
     voltaje json,
     corriente json,
     caudal json,
-    estado integer not null default 1,
-    registro_fecha timestamp not null default current_timestamp,
-    registro_usuario integer not null default 0,
-    constraint uk_nombre unique (nombre)  -- Constraint corregido
+    estado integer NOT NULL DEFAULT 1,
+    registro_fecha timestamp NOT NULL DEFAULT current_timestamp,
+    registro_usuario integer NOT NULL DEFAULT 0,
+    CONSTRAINT uk_nombre UNIQUE (nombre)
 );
 
--- Configurar propietario y permisos para tabla dispositivos
-ALTER TABLE sistemas.dispositivos OWNER to adminrole;
+ALTER TABLE sistemas.dispositivos OWNER TO adminrole;
 GRANT ALL ON TABLE sistemas.dispositivos TO adminrole;
