@@ -1,16 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db/db');
+const db = require('../db/db'); // Asumo que exporta un pool de pg
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 // Middleware para verificar JWT
 const verifyToken = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ error: 'Token no proporcionado' });
 
-  if (!token) {
-    return res.status(401).json({ error: 'Token no proporcionado' });
-  }
+  const token = authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Token no proporcionado' });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -21,69 +21,94 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// ============================================
 // REGISTRO DE USUARIO + DISPOSITIVO ASOCIADO
-// ============================================
 router.post('/register', async (req, res) => {
   const { email, username, password } = req.body;
+
+  if (!email || !username || !password) {
+    return res.status(400).json({ error: 'Faltan datos obligatorios' });
+  }
 
   const client = await db.connect();
   try {
     await client.query('BEGIN');
 
+    // Encriptar contraseña
     const hashed = await bcrypt.hash(password, 10);
 
-    const userResult = await client.query(`
+    // Insertar usuario - asumimos roles es integer[] y registro_usuario es nullable o default
+    const insertUserQuery = `
       INSERT INTO seguridad.usuarios (email, username, password, roles, registro_usuario)
-      VALUES ($1, $2, $3, ARRAY[1], 0)
+      VALUES ($1, $2, $3, $4, DEFAULT)
       RETURNING id, email, username
-    `, [email, username, hashed]);
-
+    `;
+    const userResult = await client.query(insertUserQuery, [
+      email,
+      username,
+      hashed,
+      [1], // roles como arreglo
+    ]);
     const newUser = userResult.rows[0];
 
-    await client.query(`
+    // Insertar dispositivo asociado, registro_usuario es el id del usuario creado
+    const insertDeviceQuery = `
       INSERT INTO sistemas.dispositivos (nombre, ubicacion, coordenadas, estado, registro_usuario)
-      VALUES ($1, 'Ubicación no especificada', '0,0', 1, $2)
-    `, [`Dispositivo de ${newUser.email}`, newUser.id]);
+      VALUES ($1, $2, $3, 1, $4)
+      RETURNING id, nombre
+    `;
+    const deviceName = `Dispositivo de ${newUser.email}`;
+    await client.query(insertDeviceQuery, [deviceName, 'Ubicación no especificada', '0,0', newUser.id]);
 
     await client.query('COMMIT');
 
     res.status(201).json({
       message: 'Usuario y dispositivo creados con éxito',
-      user: newUser
+      user: newUser,
     });
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Error en registro:', error);
 
     if (error.code === '23505') {
-      res.status(409).json({ error: 'El correo o nombre de usuario ya está registrado' });
-    } else {
-      res.status(500).json({ error: 'Error al registrar usuario' });
+      return res.status(409).json({ error: 'El correo o nombre de usuario ya está registrado' });
     }
+
+    res.status(500).json({ error: 'Error al registrar usuario' });
   } finally {
     client.release();
   }
 });
 
-// ============================================
 // LOGIN
-// ============================================
 router.post('/login', async (req, res) => {
   const { identifier, password } = req.body;
 
+  if (!identifier || !password) {
+    return res.status(400).json({ error: 'Faltan datos obligatorios' });
+  }
+
   try {
     const field = identifier.includes('@') ? 'email' : 'username';
-    const result = await db.query(
-      `SELECT * FROM seguridad.usuarios WHERE ${field} = $1 LIMIT 1`,
-      [identifier]
-    );
+
+    const query = `
+      SELECT id, email, username, password, roles
+      FROM seguridad.usuarios
+      WHERE ${field} = $1
+      LIMIT 1
+    `;
+
+    const result = await db.query(query, [identifier]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
 
     const user = result.rows[0];
-    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
     const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return res.status(401).json({ error: 'Contraseña incorrecta' });
+    if (!valid) {
+      return res.status(401).json({ error: 'Contraseña incorrecta' });
+    }
 
     const token = jwt.sign(
       { id: user.id, username: user.username, roles: user.roles },
@@ -97,8 +122,8 @@ router.post('/login', async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        username: user.username
-      }
+        username: user.username,
+      },
     });
   } catch (error) {
     console.error('Error en login:', error);
@@ -106,23 +131,21 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// ============================================
-// CRUD DE DISPOSITIVOS
-// ============================================
-
+// CRUD DISPOSITIVOS
 // Crear dispositivo
 router.post('/dispositivos', verifyToken, async (req, res) => {
   const { nombre, ubicacion, coordenadas, potencia, voltaje, corriente, caudal } = req.body;
   const userId = req.user.id;
 
   try {
-    const result = await db.query(`
+    const query = `
       INSERT INTO sistemas.dispositivos (
-        nombre, ubicacion, coordenadas, potencia, voltaje, corriente, caudal, 
-        estado, registro_usuario
+        nombre, ubicacion, coordenadas, potencia, voltaje, corriente, caudal, estado, registro_usuario
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, 1, $8)
       RETURNING *
-    `, [
+    `;
+
+    const result = await db.query(query, [
       nombre,
       ubicacion || 'Ubicación no especificada',
       coordenadas || '0,0',
@@ -130,20 +153,21 @@ router.post('/dispositivos', verifyToken, async (req, res) => {
       voltaje ? JSON.stringify(voltaje) : null,
       corriente ? JSON.stringify(corriente) : null,
       caudal ? JSON.stringify(caudal) : null,
-      userId
+      userId,
     ]);
 
     res.status(201).json({
       message: 'Dispositivo creado con éxito',
-      dispositivo: result.rows[0]
+      dispositivo: result.rows[0],
     });
   } catch (error) {
     console.error('Error al crear dispositivo:', error);
+
     if (error.code === '23505') {
-      res.status(409).json({ error: 'Ya existe un dispositivo con ese nombre' });
-    } else {
-      res.status(500).json({ error: 'Error al crear dispositivo' });
+      return res.status(409).json({ error: 'Ya existe un dispositivo con ese nombre' });
     }
+
+    res.status(500).json({ error: 'Error al crear dispositivo' });
   }
 });
 
@@ -158,7 +182,7 @@ router.get('/dispositivos', verifyToken, async (req, res) => {
 
     res.json({
       message: 'Dispositivos obtenidos con éxito',
-      dispositivos: result.rows
+      dispositivos: result.rows,
     });
   } catch (error) {
     console.error('Error al obtener dispositivos:', error);
@@ -166,7 +190,7 @@ router.get('/dispositivos', verifyToken, async (req, res) => {
   }
 });
 
-// Obtener un dispositivo específico
+// Obtener dispositivo específico
 router.get('/dispositivos/:id', verifyToken, async (req, res) => {
   try {
     const result = await db.query(`
@@ -180,7 +204,7 @@ router.get('/dispositivos/:id', verifyToken, async (req, res) => {
 
     res.json({
       message: 'Dispositivo obtenido con éxito',
-      dispositivo: result.rows[0]
+      dispositivo: result.rows[0],
     });
   } catch (error) {
     console.error('Error al obtener dispositivo:', error);
@@ -209,7 +233,7 @@ router.put('/dispositivos/:id', verifyToken, async (req, res) => {
       caudal ? JSON.stringify(caudal) : null,
       estado !== undefined ? estado : 1,
       req.params.id,
-      req.user.id
+      req.user.id,
     ]);
 
     if (result.rows.length === 0) {
@@ -218,7 +242,7 @@ router.put('/dispositivos/:id', verifyToken, async (req, res) => {
 
     res.json({
       message: 'Dispositivo actualizado con éxito',
-      dispositivo: result.rows[0]
+      dispositivo: result.rows[0],
     });
   } catch (error) {
     console.error('Error al actualizar dispositivo:', error);
@@ -242,7 +266,7 @@ router.delete('/dispositivos/:id', verifyToken, async (req, res) => {
 
     res.json({
       message: 'Dispositivo eliminado con éxito',
-      dispositivo: result.rows[0]
+      dispositivo: result.rows[0],
     });
   } catch (error) {
     console.error('Error al eliminar dispositivo:', error);
@@ -250,7 +274,7 @@ router.delete('/dispositivos/:id', verifyToken, async (req, res) => {
   }
 });
 
-// Estadísticas por usuario
+// Estadísticas de dispositivos
 router.get('/dispositivos/stats/resumen', verifyToken, async (req, res) => {
   try {
     const result = await db.query(`
@@ -264,7 +288,7 @@ router.get('/dispositivos/stats/resumen', verifyToken, async (req, res) => {
 
     res.json({
       message: 'Estadísticas obtenidas con éxito',
-      estadisticas: result.rows[0]
+      estadisticas: result.rows[0],
     });
   } catch (error) {
     console.error('Error al obtener estadísticas:', error);
