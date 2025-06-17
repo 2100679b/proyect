@@ -20,6 +20,22 @@
           <span v-if="errors.nombre" class="error-message">{{ errors.nombre }}</span>
         </div>
 
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email">Correo Electrónico</label>
+          <input 
+            type="email"
+            id="email"
+            v-model.trim="form.email"
+            :class="{ 'error': errors.email }"
+            placeholder="ejemplo@correo.com"
+            :disabled="isSubmitting"
+            required
+            maxlength="100"
+          />
+          <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
+        </div>
+
         <!-- Username -->
         <div class="form-group">
           <label for="username">Nombre de Usuario</label>
@@ -97,6 +113,7 @@ export default {
     return {
       form: {
         nombre: '',
+        email: '',
         username: '',
         contrasena: '',
         selectedRoles: []
@@ -130,11 +147,20 @@ export default {
       this.errors = {};
     },
 
+    validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    },
+
     validateForm() {
       this.errors = {};
 
       if (!this.form.nombre || this.form.nombre.length > 100) {
         this.errors.nombre = 'El nombre completo es requerido y debe tener máximo 100 caracteres';
+      }
+
+      if (!this.form.email || !this.validateEmail(this.form.email)) {
+        this.errors.email = 'Correo electrónico inválido o vacío';
       }
 
       if (!this.form.username || this.form.username.length < 3 || this.form.username.length > 100) {
@@ -162,8 +188,9 @@ export default {
       try {
         const userData = {
           nombre: this.form.nombre.trim(),
+          email: this.form.email.trim(),
           username: this.form.username.trim(),
-          password: this.form.contrasena,   // <-- Aquí corregí para que la propiedad sea "password"
+          password: this.form.contrasena,
           roles: this.form.selectedRoles.length ? this.form.selectedRoles : []
         };
 
@@ -177,6 +204,7 @@ export default {
           // Limpiar formulario
           this.form = {
             nombre: '',
+            email: '',
             username: '',
             contrasena: '',
             selectedRoles: []
