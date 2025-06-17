@@ -6,16 +6,11 @@ const morgan = require('morgan');
 
 const usersRoutes = require('./routes/users');
 
-// CORS - Agregar tu dominio de Netlify
+// CORS
 const corsOptions = {
-  origin: [
-    process.env.FRONTEND_ORIGIN || '*',
-    'https://protipweb.netlify.app',
-    'http://localhost:5173' // Para desarrollo local
-  ],
+  origin: process.env.FRONTEND_ORIGIN || '*',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
 };
 app.use(cors(corsOptions));
 
@@ -23,27 +18,11 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(morgan('dev'));
 
-// ✅ CORREGIR: cambiar de '/api/users' a '/api'
-app.use('/api', usersRoutes);
+// Rutas
+app.use('/api/users', usersRoutes);
 
 app.get('/', (req, res) => {
-  res.json({ 
-    mensaje: '🚀 Backend activo y funcionando',
-    routes: [
-      'POST /api/register',
-      'POST /api/login',
-      'GET /api/dispositivos',
-      'GET /api/perfil'
-    ]
-  });
-});
-
-// Ruta de health check
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK',
-    timestamp: new Date().toISOString()
-  });
+  res.json({ mensaje: '🚀 Backend activo y funcionando' });
 });
 
 app.use((err, req, res, next) => {
@@ -51,5 +30,11 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-// Solo exportar la app, SIN iniciar el servidor (como ya tienes)
+// ❌ QUITAR ESTAS LÍNEAS - El daemon.js se encarga de esto
+// const PORT = process.env.PORT || 3001;
+// app.listen(PORT, () => {
+//   console.log(`🚀 Backend escuchando en puerto ${PORT}`);
+// });
+
+// ✅ Solo exportar la app, SIN iniciar el servidor
 module.exports = app;
