@@ -199,4 +199,4 @@ export default {
 }
 </script>
 
-<style scoped src="./ViewDispositivos.css"></style>
+<style scoped src="@/assets/styles.css"></style>

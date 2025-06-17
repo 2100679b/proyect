@@ -83,5 +83,3 @@ export default {
     }
 }
 </script>
-
-<style scoped src="./DispositivoDialogo.css"></style>
