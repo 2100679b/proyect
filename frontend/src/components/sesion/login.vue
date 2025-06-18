@@ -5,7 +5,7 @@
         <div class="app-logo">⚡</div>
         <h1 class="app-name">Sistema de Simulación</h1>
       </div>
-      
+
       <h1 class="login-title">{{ isRegister ? 'Registro' : 'Iniciar Sesión' }}</h1>
       <p class="login-subtitle">
         {{ isRegister ? 'Crea una cuenta nueva' : 'Ingresa a tu cuenta' }}
@@ -13,20 +13,22 @@
 
       <form @submit.prevent="isRegister ? register() : login()" class="login-form">
         <div v-if="isRegister" class="form-group">
-          <label class="form-label">Email:</label>
-          <input 
-            v-model="formData.email" 
-            type="email" 
+          <label class="form-label">Correo electrónico:</label>
+          <input
+            v-model="formData.email"
+            type="email"
             class="form-input"
             placeholder="tu-email@ejemplo.com"
-            required 
+            required
           />
         </div>
 
         <div class="form-group">
-          <label class="form-label">{{ isRegister ? 'Nombre de usuario:' : 'Usuario o correo:' }}</label>
-          
-          <!-- Input separados para resolver el problema de v-model -->
+          <label class="form-label">
+            {{ isRegister ? 'Nombre de usuario:' : 'Usuario o correo:' }}
+          </label>
+
+          <!-- Inputs separados para evitar conflictos de v-model -->
           <input
             v-if="isRegister"
             v-model="formData.username"
@@ -47,12 +49,12 @@
 
         <div class="form-group">
           <label class="form-label">Contraseña:</label>
-          <input 
-            v-model="formData.password" 
-            type="password" 
+          <input
+            v-model="formData.password"
+            type="password"
             class="form-input"
             placeholder="Tu contraseña"
-            required 
+            required
           />
         </div>
 
@@ -72,7 +74,7 @@
       <div v-if="errorMessage" class="message-box error-message">
         <i class="icon">⚠️</i> {{ errorMessage }}
       </div>
-      
+
       <div v-if="successMessage" class="message-box success-message">
         <i class="icon">✅</i> {{ successMessage }}
       </div>
@@ -84,7 +86,7 @@
 import axios from 'axios';
 import { setAuthToken } from '../utils/auth';
 
-// Configura la URL base para todas las solicitudes
+// Configura la URL base para las peticiones HTTP
 axios.defaults.baseURL = process.env.VUE_APP_API_URL || '';
 
 export default {
@@ -124,16 +126,9 @@ export default {
         });
 
         this.successMessage = response.data.message || '¡Registro exitoso!';
-        
-        // Limpiar formulario después de registro exitoso
-        this.formData = {
-          email: '',
-          username: '',
-          password: '',
-          identifier: ''
-        };
-        
-        // Cambiar automáticamente a login después de 2 segundos
+        this.formData = { email: '', username: '', password: '', identifier: '' };
+
+        // Cambiar al modo login tras 2 segundos
         setTimeout(() => {
           this.isRegister = false;
         }, 2000);
@@ -153,46 +148,35 @@ export default {
           password: this.formData.password
         });
 
-        // Guardar token y datos de usuario
         setAuthToken(response.data.token);
-        
         this.successMessage = response.data.message || '¡Inicio de sesión exitoso!';
-        
-        // Limpiar formulario
         this.formData.password = '';
-        
-        // Redirigir después de 1.5 segundos
+
+        // Redirige tras 1.5 segundos
         setTimeout(() => {
           this.$router.push('/dashboard');
         }, 1500);
-        
       } catch (error) {
         this.handleError(error, 'inicio de sesión');
       } finally {
         this.isLoading = false;
       }
     },
-    handleError(error, context) {
-      console.error(`Error en ${context}:`, error);
-      
+    handleError(error, contexto) {
+      console.error(`Error en ${contexto}:`, error);
+
       if (error.response) {
-        // Error del servidor (4xx, 5xx)
-        if (error.response.data && error.response.data.error) {
-          this.errorMessage = error.response.data.error;
-        } else {
-          this.errorMessage = `Error en ${context}: ${error.response.status}`;
-        }
+        this.errorMessage = error.response.data?.error || `Error ${error.response.status} en ${contexto}`;
       } else if (error.request) {
-        // La solicitud se hizo pero no se recibió respuesta
         this.errorMessage = 'No se pudo conectar al servidor. Verifica tu conexión.';
       } else {
-        // Error al configurar la solicitud
-        this.errorMessage = `Error de configuración: ${error.message}`;
+        this.errorMessage = `Error al configurar la solicitud: ${error.message}`;
       }
     }
   }
 };
 </script>
+
 
 <style scoped>
 .login-container {
