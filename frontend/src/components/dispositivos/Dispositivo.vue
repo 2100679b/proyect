@@ -1,9 +1,9 @@
 <template>
-  <div class="col">
+  <div class="col" v-if="dispositivo">
     <div class="card h-100">
       <div class="card-body">
-        <h5 class="card-title">{{ dispositivo.nombre }}</h5>
-        <p class="card-text">{{ dispositivo.ubicacion }}, {{ dispositivo.coordenadas }}</p>
+        <h5 class="card-title">{{ dispositivo.nombre || 'Sin nombre' }}</h5>
+        <p class="card-text">{{ dispositivo.ubicacion || 'Ubicación desconocida' }}, {{ dispositivo.coordenadas || 'Coordenadas no disponibles' }}</p>
         
         <table class="table table-bordered table-sm">
           <thead>
@@ -78,41 +78,38 @@ export default {
     }
   },
   computed: {
-    // Extraer y formatear los datos JSON
     potencia() {
-      return this.parseJsonData(this.dispositivo.potencia);
+      return this.parseJsonData(this.dispositivo?.potencia);
     },
     voltaje() {
-      return this.parseJsonData(this.dispositivo.voltaje);
+      return this.parseJsonData(this.dispositivo?.voltaje);
     },
     corriente() {
-      return this.parseJsonData(this.dispositivo.corriente);
+      return this.parseJsonData(this.dispositivo?.corriente);
     },
     caudal() {
-      return this.parseJsonData(this.dispositivo.caudal);
+      return this.parseJsonData(this.dispositivo?.caudal);
     },
-    
-    // Estado general del dispositivo
     globalStatusClass() {
+      const estado = this.dispositivo?.estado;
       return {
-        'text-bg-success': this.dispositivo.estado === 1,
-        'text-bg-warning': this.dispositivo.estado === 2,
-        'text-bg-danger': this.dispositivo.estado === 3
+        'text-bg-success': estado === 1,
+        'text-bg-warning': estado === 2,
+        'text-bg-danger': estado === 3
       };
     },
-    
     estadoGeneralTexto() {
-      return this.estadoTexto(this.dispositivo.estado);
+      return this.estadoTexto(this.dispositivo?.estado);
     },
-    
     formattedDate() {
+      if (!this.dispositivo?.registro_fecha) return 'Fecha no disponible';
       const date = new Date(this.dispositivo.registro_fecha);
-      return date.toLocaleString();
+      return isNaN(date) ? 'Fecha inválida' : date.toLocaleString();
     }
   },
   methods: {
     parseJsonData(jsonData) {
-      // Si es string, convertimos a objeto
+      if (!jsonData) return { valor: 0, unidad: 'N/A', estado: 0 };
       if (typeof jsonData === 'string') {
         try {
           return JSON.parse(jsonData);
@@ -121,10 +118,8 @@ export default {
           return { valor: 0, unidad: 'N/A', estado: 0 };
         }
       }
-      // Si ya es objeto, lo retornamos directamente
-      return jsonData || { valor: 0, unidad: 'N/A', estado: 0 };
+      return jsonData;
     },
-    
     estadoTexto(estado) {
       const estados = {
         1: 'Operativo',
@@ -134,115 +129,17 @@ export default {
       };
       return estados[estado] || 'Desconocido';
     },
-    
     statusClass(type) {
-      const status = this[type].estado;
+      const status = this[type]?.estado || 0;
       return {
         'text-success': status === 1,
         'text-warning': status === 2,
         'text-danger': status === 3
       };
     },
-    
     emitSetDispositivo() {
       this.$emit('set-dispositivo', this.dispositivo);
     }
   }
 }
 </script>
-
-<style scoped>
-.card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 1px solid rgba(0, 0, 0, 0.125);
-  border-radius: 0.5rem;
-  overflow: hidden;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-.card-title {
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: #2c3e50;
-}
-
-.card-text {
-  color: #6c757d;
-  margin-bottom: 1.25rem;
-}
-
-.card-body {
-  padding: 1.25rem;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.03);
-  border-top: 1px solid rgba(0, 0, 0, 0.125);
-  padding: 0.75rem 1.25rem;
-}
-
-.btn-link {
-  padding: 0;
-  text-decoration: none;
-  font-size: 0.875rem;
-}
-
-.table {
-  margin-bottom: 0;
-  font-size: 0.875rem;
-}
-
-.table th, .table td {
-  padding: 0.5rem;
-  vertical-align: middle;
-}
-
-.table thead th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-}
-
-.text-bg-success {
-  background-color: #d4edda !important;
-  color: #155724;
-}
-
-.text-bg-warning {
-  background-color: #fff3cd !important;
-  color: #856404;
-}
-
-.text-bg-danger {
-  background-color: #f8d7da !important;
-  color: #721c24;
-}
-
-.text-success {
-  color: #28a745 !important;
-}
-
-.text-warning {
-  color: #ffc107 !important;
-}
-
-.text-danger {
-  color: #dc3545 !important;
-}
-
-@media (max-width: 768px) {
-  .table {
-    font-size: 0.8rem;
-  }
-  
-  .table th, .table td {
-    padding: 0.3rem;
-  }
-}
-</style>

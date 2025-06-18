@@ -53,8 +53,7 @@
 </template>
 
 <script>
-// Elimina esta línea si no usas sessionStorage
-// import sessionStorage from '@/servicios/SessionStore'
+import axios from 'axios'
 
 export default {
   name: 'RegistroDispositivo',
@@ -94,15 +93,20 @@ export default {
         estado: 1
       };
     },
-    guardar() {
+    async guardar() {
       try {
-        const dispositivos = this.$store.state.dispositivos;
-        dispositivos.push(this.dispositivo);
-        this.$store.commit('setDispositivos', dispositivos);
-        this.limpiar();
+        const response = await axios.post('http://18.119.167.171:3001/api/dispositivos', this.dispositivo);
+        
+        if (response.status === 201 || response.status === 200) {
+          this.limpiar();
+          this.$router.push('/menu/dispositivos');
+        } else {
+          this.alerta.mensaje = 'No se pudo guardar el dispositivo.';
+          console.error('Respuesta no esperada:', response);
+        }
       } catch (e) {
-        this.alerta.mensaje = 'No se pudo guardar el dispositivo.';
-        console.error(e);
+        this.alerta.mensaje = 'Error al conectarse con el servidor.';
+        console.error('Error en guardar:', e);
       }
     },
     limpiar() {
@@ -113,11 +117,12 @@ export default {
       this.$router.push('/menu/dispositivos');
     },
     tfPassword() {
-      // lógica en caso de que quieras hacer algo al presionar enter
+      // lógica opcional al presionar Enter
     }
   }
 }
 </script>
+
 
 <style scoped>
 .record-card {
