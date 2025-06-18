@@ -166,8 +166,11 @@ export default  {
             caudal: this.dispositivo.caudal
           };
 
+          // Configurar URL del backend (reemplaza con la URL real de tu backend)
+          const API_BASE_URL = process.env.VUE_APP_API_URL || 'https://18.119.167.171:3001'; // o tu URL de backend
+          
           // Realizar petición POST al backend
-          const response = await axios.post('/api/dispositivos', dispositivoData, {
+          const response = await axios.post(`${API_BASE_URL}/api/dispositivos`, dispositivoData, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
