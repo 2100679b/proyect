@@ -15,6 +15,7 @@
               v-model.trim="dispositivo.identifica.identificador"
               placeholder="Identificador"
               required
+              autocomplete="off"
             />
             <label for="identificador" class="form-text text-muted">Identificador</label>
           </div>            
@@ -26,6 +27,7 @@
               v-model.trim="dispositivo.identifica.nombre"
               placeholder="Nombre del dispositivo"
               required
+              autocomplete="off"
             />
             <label for="nombreDisp" class="form-text text-muted">Nombre del dispositivo</label>
           </div>
@@ -36,14 +38,24 @@
               class="form-control"
               v-model.trim="dispositivo.identifica.ubicacion"
               placeholder="Ubicación"
+              autocomplete="off"
             />
             <label for="ubicacion" class="form-text text-muted">Ubicación</label>
           </div>
           <div class="d-flex justify-content-end mt-3">
-            <button class="btn btn-outline-success me-2" type="submit">
+            <button 
+              class="btn btn-outline-success me-2" 
+              type="submit"
+              :disabled="guardando"
+            >
               <i class="bi bi-box-arrow-in-right"></i> Guardar
             </button>
-            <button class="btn btn-outline-secondary" type="button" @click="cancelar">
+            <button 
+              class="btn btn-outline-secondary" 
+              type="button" 
+              @click="cancelar"
+              :disabled="guardando"
+            >
               <i class="bi bi-x-circle"></i> Cancelar
             </button>
           </div>
@@ -72,7 +84,8 @@ export default {
       dispositivo: this.nuevoDispositivo(),
       alerta: {
         mensaje: '',
-      }
+      },
+      guardando: false,
     }
   },
   methods: {
@@ -104,12 +117,11 @@ export default {
       }
     },
     async guardar() {
-      this.alerta.mensaje = ''  // limpio mensaje error
-
-      // Validaciones básicas con trim
+      this.alerta.mensaje = ''
+      if (this.guardando) return // evitar doble envío
       if (
-        !this.dispositivo.identifica.identificador ||
-        !this.dispositivo.identifica.nombre
+        !this.dispositivo.identifica.identificador.trim() ||
+        !this.dispositivo.identifica.nombre.trim()
       ) {
         this.alerta.mensaje = 'Por favor completa los campos Identificador y Nombre del dispositivo.'
         return
@@ -121,9 +133,9 @@ export default {
         return
       }
 
+      this.guardando = true
       try {
         const response = await axios.post(`${apiUrl}/api/dispositivos`, this.dispositivo)
-        
         if (response.status === 201 || response.status === 200) {
           this.limpiar()
           this.$router.push('/menu/dispositivos')
@@ -134,10 +146,13 @@ export default {
       } catch (e) {
         this.alerta.mensaje = 'Error al conectarse con el servidor.'
         console.error('Error en guardar:', e)
+      } finally {
+        this.guardando = false
       }
     },
     limpiar() {
       this.dispositivo = this.nuevoDispositivo()
+      this.alerta.mensaje = ''
     },
     cancelar() {
       this.limpiar()
