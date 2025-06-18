@@ -198,17 +198,8 @@ export default  {
         this.guardando = true
 
         try {
-          // Preparar datos para envío - Versión simplificada primero
-          const dispositivoSimple = {
-            identificador: this.dispositivo.identifica.identificador,
-            nombre: this.dispositivo.identifica.nombre,
-            ubicacion: this.dispositivo.identifica.ubicacion,
-            coordenadas: this.dispositivo.identifica.coordenadas,
-            fechaRegistro: new Date().toISOString()
-          }
-          
-          // Datos completos como respaldo
-          const dispositivoCompleto = {
+          // Preparar datos para envío
+          const dispositivoData = {
             ...this.dispositivo,
             identifica: {
               ...this.dispositivo.identifica,
@@ -220,19 +211,10 @@ export default  {
             }
           }
 
-          // Intentar primero con datos simples, luego con completos
-          const datosAEnviar = dispositivoSimple
-
-          // Debug: mostrar datos que se van a enviar
-          console.log('URL:', `${this.apiUrl}/api/dispositivos`)
-          console.log('Headers:', this.getHeaders())
-          console.log('Datos simples a enviar:', JSON.stringify(datosAEnviar, null, 2))
-          console.log('Datos completos disponibles:', JSON.stringify(dispositivoCompleto, null, 2))
-
           // Realizar petición POST al backend
           const response = await axios.post(
             `${this.apiUrl}/api/dispositivos`, 
-            datosAEnviar,
+            dispositivoData,
             {
               headers: this.getHeaders(),
               timeout: 10000 // 10 segundos de timeout
@@ -246,7 +228,7 @@ export default  {
             // Actualizar el store local si existe
             if (this.$store && this.$store.state.dispositivos) {
               let dispositivos = [...this.$store.state.dispositivos]
-              dispositivos.push(response.data || datosAEnviar)
+              dispositivos.push(response.data || dispositivoData)
               this.$store.commit('setDispositivos', dispositivos)
             }
             
