@@ -1,5 +1,5 @@
 <template>
-<div id="registro-dispositivo" class="card bg-transparent mb-3">
+<div id="registro-dispositivo" class="card bg-transparent mb-3" :style="styleCard">
     <div class="card-body">
         <div class="text-center">
             <h4 class="card-title">Registro Dispositivo</h4>
@@ -42,7 +42,7 @@
                     <label for="coordenadas">Coordenadas *</label>
                 </div>
                 
-                <!-- Campos para los parámetros (puedes hacerlos editables o mantenerlos fijos) -->
+                <!-- Campos para los parámetros -->
                 <div class="row mt-3">
                     <div class="col-md-6">
                         <h6>Potencia</h6>
@@ -139,6 +139,9 @@
 </template>
 
 <script>
+import axios from 'axios'
+import { mapState } from 'vuex'
+
 export default {
     name: 'RegistroDispositivo',
     data() {
@@ -151,12 +154,30 @@ export default {
                 voltaje: { nominal: 240, min: 230, max: 250, um: 'Volts' },
                 corriente: { nominal: 30, min: 25, max: 35, um: 'Amperes' },
                 caudal: { nominal: 1, min: 0.1, max: 1.2, um: 'm³/min' },
-                estado: 1
+                estado: 1,
+                valoresActuales: {
+                    potencia: { valor: 0, estado: 0 },
+                    voltaje: { valor: 0, estado: 0 },
+                    corriente: { valor: 0, estado: 0 },
+                    caudal: { valor: 0, estado: 0 }
+                },
+                estatus: 'Operación Normal',
+                fecha_actualizacion: null
             },
             alerta: {
                 mensaje: '',
             }
         };
+    },
+    computed: {
+        ...mapState(['usuario']),
+        styleCard() {
+            return {
+                maxWidth: '500px',
+                minWidth: '400px',
+                width: '100%'
+            }
+        }
     },
     mounted() {
         this.$refs.nombre.focus();
@@ -211,25 +232,27 @@ export default {
             return true;
         },
         
-        guardar() {
+        async guardar() {
             if (!this.validarFormulario()) return;
             
-            // Crear el objeto para enviar a la base de datos
-            const payload = {
-                nombre: this.dispositivo.nombre,
-                ubicacion: this.dispositivo.ubicacion,
-                coordenadas: this.dispositivo.coordenadas,
-                potencia: JSON.stringify(this.dispositivo.potencia),
-                voltaje: JSON.stringify(this.dispositivo.voltaje),
-                corriente: JSON.stringify(this.dispositivo.corriente),
-                caudal: JSON.stringify(this.dispositivo.caudal),
-                estado: this.dispositivo.estado,
-                registro_usuario: this.$store.state.usuario.id // Ajusta según tu sistema de usuarios
-            };
+            try {
+                // Crear el objeto para enviar a la base de datos
+                const payload = {
+                    nombre: this.dispositivo.nombre,
+                    ubicacion: this.dispositivo.ubicacion,
+                    coordenadas: this.dispositivo.coordenadas,
+                    potencia: JSON.stringify(this.dispositivo.potencia),
+                    voltaje: JSON.stringify(this.dispositivo.voltaje),
+                    corriente: JSON.stringify(this.dispositivo.corriente),
+                    caudal: JSON.stringify(this.dispositivo.caudal),
+                    estado: this.dispositivo.estado,
+                    registro_usuario: this.usuario.id // ID del usuario actual
+                };
 
-            // Ejemplo de conexión con AWS (ajusta a tu API)
-            this.$axios.post('/dispositivos', payload)
-                .then(response => {
+                // Enviar a la API de AWS
+                const response = await axios.post('https://tu-api-aws.com/dispositivos', payload);
+                
+                if (response.status === 201) {
                     // Agregar el dispositivo al store
                     const nuevoDispositivo = {
                         id: response.data.id,
@@ -238,10 +261,15 @@ export default {
                     };
                     this.$store.commit('agregarDispositivo', nuevoDispositivo);
                     this.$router.push('/menu/dispositivos');
-                })
-                .catch(error => {
-                    this.alerta.mensaje = error.response?.data?.message || 'Error al guardar el dispositivo';
-                });
+                }
+            } catch (error) {
+                if (error.response && error.response.status === 409) {
+                    this.alerta.mensaje = 'El nombre del dispositivo ya existe en la base de datos.';
+                } else {
+                    this.alerta.mensaje = 'Error al guardar el dispositivo. Por favor, inténtelo de nuevo.';
+                    console.error('Error al guardar dispositivo:', error);
+                }
+            }
         },
         
         limpiar() {
@@ -262,3 +290,7 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+/* Mantenemos los estilos específicos */
+</style>
