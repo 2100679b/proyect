@@ -8,22 +8,42 @@
     <div class="row p-1"> 
         <form @submit.prevent="guardar">
               <div class="form-floating p-1">
-                <input type="text" id="nombreDisp" ref="nombreDisp" class="form-control" 
-                       v-model="dispositivo.identifica.nombre" required
-                       aria-describedby="Nombre" placeholder="Nombre del dispositivo"/>
-                <label for="nombreDisp" class="form-text text-muted">Nombre del dispositivo *</label>
+                <input 
+                  type="text" 
+                  id="nombreDisp" 
+                  ref="nombreDisp" 
+                  class="form-control" 
+                  v-model="dispositivo.nombre" 
+                  required
+                  aria-describedby="Nombre" 
+                  placeholder="Nombre del dispositivo"
+                />
+                <label for="nombreDisp" class="form-text text-muted">Nombre del dispositivo</label>
               </div>
               <div class="form-floating p-1">
-                <input type="text" id="ubicacion" ref="ubicacion" class="form-control" 
-                       v-model="dispositivo.identifica.ubicacion" required
-                       aria-describedby="Ubicacion" placeholder="Ubicacion"/>
-                <label for="ubicacion" class="form-text text-muted">Ubicación *</label>
+                <input 
+                  type="text" 
+                  id="ubicacion" 
+                  ref="ubicacion" 
+                  class="form-control" 
+                  v-model="dispositivo.ubicacion" 
+                  required
+                  aria-describedby="Ubicacion" 
+                  placeholder="Ubicacion"
+                />
+                <label for="ubicacion" class="form-text text-muted">Ubicación</label>
               </div>
               <div class="form-floating p-1">
-                <input type="text" id="coordenadas" class="form-control" 
-                       v-model="dispositivo.identifica.coordenadas" required
-                       placeholder="Coordenadas"/>
-                <label for="coordenadas" class="form-text text-muted">Coordenadas *</label>
+                <input 
+                  type="text" 
+                  id="coordenadas" 
+                  ref="coordenadas" 
+                  class="form-control" 
+                  v-model="dispositivo.coordenadas" 
+                  aria-describedby="Coordenadas" 
+                  placeholder="Coordenadas"
+                />
+                <label for="coordenadas" class="form-text text-muted">Coordenadas</label>
               </div>
             </form>
             </div>
@@ -33,15 +53,25 @@
                 <strong>¡Error!</strong>
                 <p v-html="alerta.mensaje"></p>
                 </div>
+                <div class="alert alert-success" role="alert" v-if="alerta.exito">
+                <strong>¡Éxito!</strong>
+                <p v-html="alerta.exito"></p>
+                </div>
             </div>
         </div>
         <div class="row p-2">
             <div class="col">
-                <button class="btn btn-outline-success" type="button" @click="guardar"> 
-                    <i class="bi bi-box-arrow-in-right"></i> Guardar 
+                <button 
+                  class="btn btn-outline-success" 
+                  type="button" 
+                  @click="guardar()" 
+                  :disabled="guardando"
+                > 
+                  <i class="bi bi-box-arrow-in-right"></i> 
+                  {{ guardando ? 'Guardando...' : 'Guardar' }}
                 </button>
-                <button class="btn btn-outline-secondary" type="button" @click="limpiar"> 
-                    <i class="bi bi-box-arrow-in-right"></i> Cancelar 
+                <button class="btn btn-outline-secondary" type="button" @click="limpiar()"> 
+                  <i class="bi bi-x-circle"></i> Cancelar 
                 </button>
             </div>
         </div>
@@ -50,122 +80,174 @@
 </template>
       
 <script>
-import axios from 'axios';
+import axios from 'axios'
 
 export default  {
     name: 'RegistroDispositivo',
-    data() {
+    components: {
+    },
+    data: function() {
         return { 
         dispositivo: {
-          identifica: {
-            identificador: 0,  // Este será generado por la base de datos
             nombre: '',
             ubicacion: '',
             coordenadas: '19.7060° N, 101.1950° W',
-            idestatus: 1,
-            estatus: 'Operacion Normal',
-            potencia:  { nominal: 7.400, minimo: 6.200, maximo: 8.600, um: 'KW' },
-            voltaje: { nominal: 240, minimo: 230, maximo: 250, um: 'Volts' },
-            corriente: { nominal: 30, minimo: 25, maximo: 35, um: 'Amperes' },
-            caudal: { nominal: 1, minimo: 0.10, maximo: 1.20, um: 'm3/minuto' },
-            fechaRegistro: new Date().toUTCString()
-          },
-          opera: {
-            potencia: { valor: 7.200, idEstatus: 1 },
-            voltaje: { valor: 240, idEstatus: 1 },
-            corriente: { valor: 30, idEstatus: 1 },
-            caudal: { valor: 1, idEstatus: 1 },
-            idEstatus: 1,
-            estatus: 'Operacion Normal',
-            fechaRegistro: new Date().toUTCString()
-          },
-          estado: 1
+            potencia: { 
+              nominal: 7.400, 
+              minimo: 6.200, 
+              maximo: 8.600, 
+              um: 'KW' 
+            },
+            voltaje: { 
+              nominal: 240, 
+              minimo: 230, 
+              maximo: 250, 
+              um: 'Volts' 
+            },
+            corriente: { 
+              nominal: 30, 
+              minimo: 25, 
+              maximo: 35, 
+              um: 'Amperes' 
+            },
+            caudal: { 
+              nominal: 1, 
+              minimo: 0.10, 
+              maximo: 1.20, 
+              um: 'm3/minuto' 
+            }
         },
         alerta: {
             mensaje: '',
-        }
+            exito: ''
+        },
+        guardando: false
         };
     },
-    mounted() {
-        this.$refs.nombreDisp.focus();
-    },
+    computed: {
+    }, 
     methods: {
       async guardar() {
-        // Validación básica
-        if (!this.dispositivo.identifica.nombre.trim()) {
-            this.alerta.mensaje = 'El nombre del dispositivo es obligatorio';
-            return;
+        // Limpiar alertas previas
+        this.alerta.mensaje = '';
+        this.alerta.exito = '';
+        
+        // Validaciones básicas
+        if (!this.dispositivo.nombre.trim()) {
+          this.alerta.mensaje = 'El nombre del dispositivo es requerido';
+          return;
         }
         
-        if (!this.dispositivo.identifica.ubicacion.trim()) {
-            this.alerta.mensaje = 'La ubicación es obligatoria';
-            return;
+        if (!this.dispositivo.ubicacion.trim()) {
+          this.alerta.mensaje = 'La ubicación es requerida';
+          return;
         }
-        
-        try {
-            // Preparar datos para la base de datos
-            const payload = {
-                nombre: this.dispositivo.identifica.nombre,
-                ubicacion: this.dispositivo.identifica.ubicacion,
-                coordenadas: this.dispositivo.identifica.coordenadas,
-                potencia: this.dispositivo.identifica.potencia,
-                voltaje: this.dispositivo.identifica.voltaje,
-                corriente: this.dispositivo.identifica.corriente,
-                caudal: this.dispositivo.identifica.caudal,
-                estado: this.dispositivo.estado,
-                registro_usuario: this.$store.state.usuario.id || 0 // Obtener ID de usuario del store
-            };
 
-            // Enviar a la API
-            const response = await axios.post('https://tu-api-aws.com/dispositivos', payload);
-            
-            if (response.status === 201) {
-                // Actualizar dispositivo con ID generado
-                this.dispositivo.identifica.identificador = response.data.id;
-                
-                // Agregar al store local
-                let dispositivos = this.$store.state.dispositivos;
-                dispositivos.push(JSON.parse(JSON.stringify(this.dispositivo)));
-                this.$store.commit('setDispositivos', dispositivos);
-                
-                this.limpiar();
+        this.guardando = true;
+
+        try {
+          // Obtener token de autenticación (ajusta según tu implementación)
+          const token = this.$store.state.token || localStorage.getItem('token');
+          
+          if (!token) {
+            this.alerta.mensaje = 'No hay sesión activa. Por favor inicia sesión.';
+            this.guardando = false;
+            return;
+          }
+
+          // Preparar datos para enviar al backend
+          const dispositivoData = {
+            nombre: this.dispositivo.nombre.trim(),
+            ubicacion: this.dispositivo.ubicacion.trim(),
+            coordenadas: this.dispositivo.coordenadas.trim(),
+            potencia: this.dispositivo.potencia,
+            voltaje: this.dispositivo.voltaje,
+            corriente: this.dispositivo.corriente,
+            caudal: this.dispositivo.caudal
+          };
+
+          // Realizar petición POST al backend
+          const response = await axios.post('/api/dispositivos', dispositivoData, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
             }
+          });
+
+          // Si llegamos aquí, el dispositivo se guardó exitosamente
+          this.alerta.exito = 'Dispositivo registrado exitosamente';
+          
+          // Actualizar store si estás usando Vuex
+          if (this.$store.state.dispositivos) {
+            const dispositivos = [...this.$store.state.dispositivos, response.data];
+            this.$store.commit('setDispositivos', dispositivos);
+          }
+
+          // Limpiar formulario después de un pequeño delay para mostrar el mensaje
+          setTimeout(() => {
+            this.limpiar();
+          }, 2000);
+
         } catch (error) {
-            console.error('Error al guardar dispositivo:', error);
-            
-            if (error.response && error.response.status === 409) {
-                this.alerta.mensaje = 'El nombre del dispositivo ya existe. Por favor, elige otro nombre.';
+          console.error('Error al guardar dispositivo:', error);
+          
+          if (error.response) {
+            // Error del servidor
+            if (error.response.status === 400) {
+              this.alerta.mensaje = error.response.data.error || 'Datos inválidos';
+            } else if (error.response.status === 401) {
+              this.alerta.mensaje = 'Sesión expirada. Por favor inicia sesión nuevamente.';
+            } else if (error.response.status === 500) {
+              this.alerta.mensaje = 'Error interno del servidor. Intenta nuevamente.';
             } else {
-                this.alerta.mensaje = 'Error al guardar el dispositivo. Por favor, inténtelo de nuevo.';
+              this.alerta.mensaje = error.response.data.error || 'Error al guardar el dispositivo';
             }
+          } else if (error.request) {
+            // Error de red
+            this.alerta.mensaje = 'Error de conexión. Verifica tu conexión a internet.';
+          } else {
+            // Otro tipo de error
+            this.alerta.mensaje = 'Error inesperado. Intenta nuevamente.';
+          }
+        } finally {
+          this.guardando = false;
         }
       },
       
       limpiar() {
         this.dispositivo = {
-          identifica: {
-            identificador: 0,
-            nombre: '',
-            ubicacion: '',
-            coordenadas: '19.7060° N, 101.1950° W',
-            potencia:  { nominal: 7.200, minimo: 6.200, maximo: 8.600, um: 'KW' },
-            voltaje: { nominal: 240, minimo: 230, maximo: 250, um: 'Volts' },
-            corriente: { nominal: 30, minimo: 25, maximo: 35, um: 'Amperes' },
-            caudal: { nominal: 1, minimo: 0.10, maximo: 1.20, um: 'm3/minuto' },
-            fechaRegistro: new Date().toUTCString()
+          nombre: '',
+          ubicacion: '',
+          coordenadas: '19.7060° N, 101.1950° W',
+          potencia: { 
+            nominal: 7.400, 
+            minimo: 6.200, 
+            maximo: 8.600, 
+            um: 'KW' 
           },
-          opera: {
-            potencia: { valor: 7.200, idEstatus: 1 },
-            voltaje: { valor: 240, idEstatus: 1 },
-            corriente: { valor: 30, idEstatus: 1 },
-            caudal: { valor: 1, idEstatus: 1 },
-            idEstatus: 1,
-            estatus: 'Operacion Normal',
-            fechaRegistro: new Date().toUTCString()
+          voltaje: { 
+            nominal: 240, 
+            minimo: 230, 
+            maximo: 250, 
+            um: 'Volts' 
           },
-          estado: 1
+          corriente: { 
+            nominal: 30, 
+            minimo: 25, 
+            maximo: 35, 
+            um: 'Amperes' 
+          },
+          caudal: { 
+            nominal: 1, 
+            minimo: 0.10, 
+            maximo: 1.20, 
+            um: 'm3/minuto' 
+          }
         };
+        this.alerta.mensaje = '';
+        this.alerta.exito = '';
         
+        // Navegar de vuelta al listado de dispositivos
         this.$router.push('/menu/dispositivos');
       }    
     }
