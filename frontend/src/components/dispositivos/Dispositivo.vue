@@ -1,145 +1,88 @@
 <template>
-  <div class="col" v-if="dispositivo">
-    <div class="card h-100">
-      <div class="card-body">
-        <h5 class="card-title">{{ dispositivo.nombre || 'Sin nombre' }}</h5>
-        <p class="card-text">{{ dispositivo.ubicacion || 'Ubicación desconocida' }}, {{ dispositivo.coordenadas || 'Coordenadas no disponibles' }}</p>
+<div class="col">
+    <div class="card">
         
-        <table class="table table-bordered table-sm">
-          <thead>
-            <tr>
-              <th>Parámetro</th>
-              <th>Valor</th>
-              <th>Unidad</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Potencia</td>
-              <td>{{ potencia.valor }}</td>
-              <td>{{ potencia.unidad }}</td>
-              <td :class="statusClass('potencia')">
-                {{ estadoTexto(potencia.estado) }}
-              </td>
-            </tr>
-            <tr>
-              <td>Voltaje</td>
-              <td>{{ voltaje.valor }}</td>
-              <td>{{ voltaje.unidad }}</td>
-              <td :class="statusClass('voltaje')">
-                {{ estadoTexto(voltaje.estado) }}
-              </td>
-            </tr>
-            <tr>
-              <td>Corriente</td>
-              <td>{{ corriente.valor }}</td>
-              <td>{{ corriente.unidad }}</td>
-              <td :class="statusClass('corriente')">
-                {{ estadoTexto(corriente.estado) }}
-              </td>
-            </tr>
-            <tr>
-              <td>Caudal</td>
-              <td>{{ caudal.valor }}</td>
-              <td>{{ caudal.unidad }}</td>
-              <td :class="statusClass('caudal')">
-                {{ estadoTexto(caudal.estado) }}
-              </td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr>
-              <th colspan="4" :class="globalStatusClass">
-                Estado General: {{ estadoGeneralTexto }}
-              </th>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-      <div class="card-footer">
-        <small class="text-body-secondary">{{ formattedDate }}</small>
-        <button type="button" class="btn btn-link p-0" 
-                @click="emitSetDispositivo">
-          Ver Detalle
-        </button>
-      </div>
-    </div>
-  </div>
-</template>
+        <div class="card-body">
+            <h5 class="card-title">{{dispositivo.identifica.nombre}}</h5>
+            <p class="card-text">{{ dispositivo.identifica.ubicacion }}, {{ dispositivo.identifica.coordenadas }}.</p>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Valor</th>
+                        <th>Opera</th>
+                        <th>Uni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Potencia</td>
+                        <th :class="{'text-success':(dispositivo.opera.potencia.idEstatus===1), 'text-warning':(dispositivo.opera.potencia.idEstatus===2), 'text-danger':(dispositivo.opera.potencia.idEstatus===3)}">{{ dispositivo.opera.potencia.valor }}</th>
+                        <th>{{ dispositivo.identifica.potencia.um }}</th>
+                    </tr>
+                    <tr>
+                        <td>Voltaje</td>
+                        <th :class="{'text-success':(dispositivo.opera.voltaje.idEstatus===1), 'text-warning':(dispositivo.opera.voltaje.idEstatus===2), 'text-danger':(dispositivo.opera.voltaje.idEstatus===3)}">{{ dispositivo.opera.voltaje.valor }}</th>
+                        <th>{{ dispositivo.identifica.voltaje.um }}</th>
+                    </tr>
+                    <tr>
+                        <td>Corriente</td>
+                        <th :class="{'text-success':(dispositivo.opera.corriente.idEstatus===1), 'text-warning':(dispositivo.opera.corriente.idEstatus===2), 'text-danger':(dispositivo.opera.corriente.idEstatus===3)}" >{{ dispositivo.opera.corriente.valor }}</th>
+                        <th>{{ dispositivo.identifica.corriente.um }}</th>
+                    </tr>
+                    <tr>
+                        <td>Caudal</td>
+                        <th :class="{'text-success':(dispositivo.opera.caudal.idEstatus===1), 'text-warning':(dispositivo.opera.caudal.idEstatus===2), 'text-danger':(dispositivo.opera.caudal.idEstatus===3)}" >{{ dispositivo.opera.caudal.valor }}</th>
+                        <th >{{ dispositivo.identifica.caudal.um }}</th>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="5" :class="{'text-success':(dispositivo.opera.idEstatus===1), 'text-warning':(dispositivo.opera.idEstatus===2), 'text-danger':(dispositivo.opera.idEstatus===3)}">Estatus: {{ dispositivo.opera.estatus }}</th>
+                    </tr>
+                </tfoot>
 
+            </table>
+        </div>
+        <div class="card-footer">
+            <small class="text-body-secondary">{{dispositivo.opera.fechaRegistro}}</small>
+            <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#detalleDispositivo" @click="setDispositivo">
+            Ver Detalle
+            </button>
+        </div>
+    </div>
+</div>
+</template>
 <script>
+// 
 export default {
-  name: 'DispositivoCard',
-  props: {
-    dispositivo: {
-      type: Object,
-      required: true
-    }
-  },
-  computed: {
-    potencia() {
-      return this.parseJsonData(this.dispositivo?.potencia);
-    },
-    voltaje() {
-      return this.parseJsonData(this.dispositivo?.voltaje);
-    },
-    corriente() {
-      return this.parseJsonData(this.dispositivo?.corriente);
-    },
-    caudal() {
-      return this.parseJsonData(this.dispositivo?.caudal);
-    },
-    globalStatusClass() {
-      const estado = this.dispositivo?.estado;
-      return {
-        'text-bg-success': estado === 1,
-        'text-bg-warning': estado === 2,
-        'text-bg-danger': estado === 3
-      };
-    },
-    estadoGeneralTexto() {
-      return this.estadoTexto(this.dispositivo?.estado);
-    },
-    formattedDate() {
-      if (!this.dispositivo?.registro_fecha) return 'Fecha no disponible';
-      const date = new Date(this.dispositivo.registro_fecha);
-      return isNaN(date) ? 'Fecha inválida' : date.toLocaleString();
-    }
-  },
-  methods: {
-    parseJsonData(jsonData) {
-      if (!jsonData) return { valor: 0, unidad: 'N/A', estado: 0 };
-      if (typeof jsonData === 'string') {
-        try {
-          return JSON.parse(jsonData);
-        } catch (e) {
-          console.error('Error parsing JSON data:', e);
-          return { valor: 0, unidad: 'N/A', estado: 0 };
+    name: 'Dispositivo',
+    props: {
+        dispositivo: {
+            type: Object,
+            require: true
         }
-      }
-      return jsonData;
     },
-    estadoTexto(estado) {
-      const estados = {
-        1: 'Operativo',
-        2: 'Advertencia',
-        3: 'Crítico',
-        0: 'Desconocido'
-      };
-      return estados[estado] || 'Desconocido';
+    data() {
+        return {
+        }
     },
-    statusClass(type) {
-      const status = this[type]?.estado || 0;
-      return {
-        'text-success': status === 1,
-        'text-warning': status === 2,
-        'text-danger': status === 3
-      };
-    },
-    emitSetDispositivo() {
-      this.$emit('set-dispositivo', this.dispositivo);
+    computed: {
+        setDispositivo() {
+            this.$emit('setDispositivo',this.dispositivo)
+        }
+        // Retorna {1 -> 'Operación Normal', 2 -> 'Alerta', 3 -> 'Problemas'}
+        /*
+        estatusCaudal() {
+            let reply
+            if(this.opera.caudal < this.identifica.caudal.minimo || this.opera.caudal > this.identifica.caudal.maximo)
+                reply = 3
+            else if(this.opera.caudal < (this.identifica.caudal.minimo + 3) || this.opera.caudal > (this.identifica.caudal.maximo-3))
+                reply = 2
+            else 
+                reply = 1
+            return reply
+        }
+        */
     }
-  }
 }
 </script>
