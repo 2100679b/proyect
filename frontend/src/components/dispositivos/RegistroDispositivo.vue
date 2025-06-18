@@ -95,7 +95,7 @@ export default {
     },
     async guardar() {
       try {
-        const response = await axios.post('http://18.119.167.171:3001/api/dispositivos', this.dispositivo);
+        const response = await axios.post('https://18.119.167.171:3001/api/dispositivos', this.dispositivo);
         
         if (response.status === 201 || response.status === 200) {
           this.limpiar();
