@@ -1,296 +1,173 @@
 <template>
-<div id="registro-dispositivo" class="card bg-transparent mb-3" :style="styleCard">
+<div id="login" class="card bg-trasparent mb-3 record-card" >
     <div class="card-body">
-        <div class="text-center">
-            <h4 class="card-title">Registro Dispositivo</h4>
-            <hr />
-        </div>
-        <div class="row p-1"> 
-            <form @submit.prevent="guardar">
-                <div class="form-floating p-1">
-                    <input 
-                        type="text"
-                        id="nombre"
-                        ref="nombre"
-                        class="form-control"
-                        v-model="dispositivo.nombre"
-                        required
-                        placeholder="Nombre del dispositivo"
-                    />
-                    <label for="nombre">Nombre del dispositivo *</label>
-                </div>
-                <div class="form-floating p-1">
-                    <input 
-                        type="text"
-                        id="ubicacion"
-                        class="form-control"
-                        v-model="dispositivo.ubicacion"
-                        required
-                        placeholder="Ubicación"
-                    />
-                    <label for="ubicacion">Ubicación *</label>
-                </div>
-                <div class="form-floating p-1">
-                    <input 
-                        type="text"
-                        id="coordenadas"
-                        class="form-control"
-                        v-model="dispositivo.coordenadas"
-                        required
-                        placeholder="Coordenadas"
-                    />
-                    <label for="coordenadas">Coordenadas *</label>
-                </div>
-                
-                <!-- Campos para los parámetros -->
-                <div class="row mt-3">
-                    <div class="col-md-6">
-                        <h6>Potencia</h6>
-                        <div class="input-group mb-2">
-                            <span class="input-group-text">Nominal</span>
-                            <input type="number" step="0.1" class="form-control" v-model.number="dispositivo.potencia.nominal">
-                            <span class="input-group-text">KW</span>
-                        </div>
-                        <div class="input-group mb-2">
-                            <span class="input-group-text">Mín</span>
-                            <input type="number" step="0.1" class="form-control" v-model.number="dispositivo.potencia.min">
-                        </div>
-                        <div class="input-group mb-2">
-                            <span class="input-group-text">Máx</span>
-                            <input type="number" step="0.1" class="form-control" v-model.number="dispositivo.potencia.max">
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <h6>Voltaje</h6>
-                        <div class="input-group mb-2">
-                            <span class="input-group-text">Nominal</span>
-                            <input type="number" class="form-control" v-model.number="dispositivo.voltaje.nominal">
-                            <span class="input-group-text">V</span>
-                        </div>
-                        <div class="input-group mb-2">
-                            <span class="input-group-text">Mín</span>
-                            <input type="number" class="form-control" v-model.number="dispositivo.voltaje.min">
-                        </div>
-                        <div class="input-group mb-2">
-                            <span class="input-group-text">Máx</span>
-                            <input type="number" class="form-control" v-model.number="dispositivo.voltaje.max">
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row mt-2">
-                    <div class="col-md-6">
-                        <h6>Corriente</h6>
-                        <div class="input-group mb-2">
-                            <span class="input-group-text">Nominal</span>
-                            <input type="number" class="form-control" v-model.number="dispositivo.corriente.nominal">
-                            <span class="input-group-text">A</span>
-                        </div>
-                        <div class="input-group mb-2">
-                            <span class="input-group-text">Mín</span>
-                            <input type="number" class="form-control" v-model.number="dispositivo.corriente.min">
-                        </div>
-                        <div class="input-group mb-2">
-                            <span class="input-group-text">Máx</span>
-                            <input type="number" class="form-control" v-model.number="dispositivo.corriente.max">
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <h6>Caudal</h6>
-                        <div class="input-group mb-2">
-                            <span class="input-group-text">Nominal</span>
-                            <input type="number" step="0.01" class="form-control" v-model.number="dispositivo.caudal.nominal">
-                            <span class="input-group-text">m³/min</span>
-                        </div>
-                        <div class="input-group mb-2">
-                            <span class="input-group-text">Mín</span>
-                            <input type="number" step="0.01" class="form-control" v-model.number="dispositivo.caudal.min">
-                        </div>
-                        <div class="input-group mb-2">
-                            <span class="input-group-text">Máx</span>
-                            <input type="number" step="0.01" class="form-control" v-model.number="dispositivo.caudal.max">
-                        </div>
-                    </div>
-                </div>
+    <div class="text-center">
+        <h4 class="card-title" title="Plataforma para monitoreo de Sistemas de Bombeo">Registro Dispositivo</h4>
+        <hr />
+    </div>
+    <div class="row p-1"> 
+        <form @submit.prevent="guardar">
+              <div class="form-floating p-1">
+                <input type="text" id="nombreDisp" ref="nombreDisp" class="form-control" 
+                       v-model="dispositivo.identifica.nombre" required
+                       aria-describedby="Nombre" placeholder="Nombre del dispositivo"/>
+                <label for="nombreDisp" class="form-text text-muted">Nombre del dispositivo *</label>
+              </div>
+              <div class="form-floating p-1">
+                <input type="text" id="ubicacion" ref="ubicacion" class="form-control" 
+                       v-model="dispositivo.identifica.ubicacion" required
+                       aria-describedby="Ubicacion" placeholder="Ubicacion"/>
+                <label for="ubicacion" class="form-text text-muted">Ubicación *</label>
+              </div>
+              <div class="form-floating p-1">
+                <input type="text" id="coordenadas" class="form-control" 
+                       v-model="dispositivo.identifica.coordenadas" required
+                       placeholder="Coordenadas"/>
+                <label for="coordenadas" class="form-text text-muted">Coordenadas *</label>
+              </div>
             </form>
-        </div>
-        <div class="row p-2">
-            <div class="col-12">
+            </div>
+            <div class="row p-2">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
                 <div class="alert alert-danger" role="alert" v-if="alerta.mensaje">
-                    <strong>¡Error!</strong>
-                    <p v-html="alerta.mensaje"></p>
+                <strong>¡Error!</strong>
+                <p v-html="alerta.mensaje"></p>
                 </div>
             </div>
         </div>
         <div class="row p-2">
             <div class="col">
                 <button class="btn btn-outline-success" type="button" @click="guardar"> 
-                    <i class="bi bi-save"></i> Guardar 
+                    <i class="bi bi-box-arrow-in-right"></i> Guardar 
                 </button>
                 <button class="btn btn-outline-secondary" type="button" @click="limpiar"> 
-                    <i class="bi bi-x-circle"></i> Cancelar 
+                    <i class="bi bi-box-arrow-in-right"></i> Cancelar 
                 </button>
             </div>
         </div>
     </div>
 </div>
 </template>
-
+      
 <script>
-import axios from 'axios'
-import { mapState } from 'vuex'
+import axios from 'axios';
 
-export default {
+export default  {
     name: 'RegistroDispositivo',
     data() {
         return { 
-            dispositivo: {
-                nombre: '',
-                ubicacion: '',
-                coordenadas: '19.7060° N, 101.1950° W',
-                potencia: { nominal: 7.4, min: 6.2, max: 8.6, um: 'KW' },
-                voltaje: { nominal: 240, min: 230, max: 250, um: 'Volts' },
-                corriente: { nominal: 30, min: 25, max: 35, um: 'Amperes' },
-                caudal: { nominal: 1, min: 0.1, max: 1.2, um: 'm³/min' },
-                estado: 1,
-                valoresActuales: {
-                    potencia: { valor: 0, estado: 0 },
-                    voltaje: { valor: 0, estado: 0 },
-                    corriente: { valor: 0, estado: 0 },
-                    caudal: { valor: 0, estado: 0 }
-                },
-                estatus: 'Operación Normal',
-                fecha_actualizacion: null
-            },
-            alerta: {
-                mensaje: '',
-            }
+        dispositivo: {
+          identifica: {
+            identificador: 0,  // Este será generado por la base de datos
+            nombre: '',
+            ubicacion: '',
+            coordenadas: '19.7060° N, 101.1950° W',
+            idestatus: 1,
+            estatus: 'Operacion Normal',
+            potencia:  { nominal: 7.400, minimo: 6.200, maximo: 8.600, um: 'KW' },
+            voltaje: { nominal: 240, minimo: 230, maximo: 250, um: 'Volts' },
+            corriente: { nominal: 30, minimo: 25, maximo: 35, um: 'Amperes' },
+            caudal: { nominal: 1, minimo: 0.10, maximo: 1.20, um: 'm3/minuto' },
+            fechaRegistro: new Date().toUTCString()
+          },
+          opera: {
+            potencia: { valor: 7.200, idEstatus: 1 },
+            voltaje: { valor: 240, idEstatus: 1 },
+            corriente: { valor: 30, idEstatus: 1 },
+            caudal: { valor: 1, idEstatus: 1 },
+            idEstatus: 1,
+            estatus: 'Operacion Normal',
+            fechaRegistro: new Date().toUTCString()
+          },
+          estado: 1
+        },
+        alerta: {
+            mensaje: '',
+        }
         };
     },
-    computed: {
-        ...mapState(['usuario']),
-        styleCard() {
-            return {
-                maxWidth: '500px',
-                minWidth: '400px',
-                width: '100%'
-            }
-        }
-    },
     mounted() {
-        this.$refs.nombre.focus();
+        this.$refs.nombreDisp.focus();
     },
     methods: {
-        validarFormulario() {
-            // Validar campos principales
-            if (!this.dispositivo.nombre.trim()) {
-                this.alerta.mensaje = 'El nombre del dispositivo es obligatorio';
-                return false;
-            }
-            
-            if (!this.dispositivo.ubicacion.trim()) {
-                this.alerta.mensaje = 'La ubicación es obligatoria';
-                return false;
-            }
-            
-            if (!this.dispositivo.coordenadas.trim()) {
-                this.alerta.mensaje = 'Las coordenadas son obligatorias';
-                return false;
-            }
-            
-            // Validar rangos numéricos
-            const validarRango = (parametro, nombre) => {
-                if (parametro.min >= parametro.max) {
-                    this.alerta.mensaje = `En ${nombre}, el valor mínimo debe ser menor que el máximo`;
-                    return false;
-                }
-                if (parametro.nominal < parametro.min || parametro.nominal > parametro.max) {
-                    this.alerta.mensaje = `En ${nombre}, el valor nominal debe estar dentro del rango min-max`;
-                    return false;
-                }
-                return true;
+      async guardar() {
+        // Validación básica
+        if (!this.dispositivo.identifica.nombre.trim()) {
+            this.alerta.mensaje = 'El nombre del dispositivo es obligatorio';
+            return;
+        }
+        
+        if (!this.dispositivo.identifica.ubicacion.trim()) {
+            this.alerta.mensaje = 'La ubicación es obligatoria';
+            return;
+        }
+        
+        try {
+            // Preparar datos para la base de datos
+            const payload = {
+                nombre: this.dispositivo.identifica.nombre,
+                ubicacion: this.dispositivo.identifica.ubicacion,
+                coordenadas: this.dispositivo.identifica.coordenadas,
+                potencia: this.dispositivo.identifica.potencia,
+                voltaje: this.dispositivo.identifica.voltaje,
+                corriente: this.dispositivo.identifica.corriente,
+                caudal: this.dispositivo.identifica.caudal,
+                estado: this.dispositivo.estado,
+                registro_usuario: this.$store.state.usuario.id || 0 // Obtener ID de usuario del store
             };
-            
-            if (!validarRango(this.dispositivo.potencia, 'Potencia')) return false;
-            if (!validarRango(this.dispositivo.voltaje, 'Voltaje')) return false;
-            if (!validarRango(this.dispositivo.corriente, 'Corriente')) return false;
-            if (!validarRango(this.dispositivo.caudal, 'Caudal')) return false;
-            
-            // Verificar duplicados por nombre
-            const existe = this.$store.state.dispositivos.some(
-                d => d.nombre.toLowerCase() === this.dispositivo.nombre.trim().toLowerCase()
-            );
-            
-            if (existe) {
-                this.alerta.mensaje = `El dispositivo con nombre "${this.dispositivo.nombre}" ya existe`;
-                return false;
-            }
-            
-            this.alerta.mensaje = '';
-            return true;
-        },
-        
-        async guardar() {
-            if (!this.validarFormulario()) return;
-            
-            try {
-                // Crear el objeto para enviar a la base de datos
-                const payload = {
-                    nombre: this.dispositivo.nombre,
-                    ubicacion: this.dispositivo.ubicacion,
-                    coordenadas: this.dispositivo.coordenadas,
-                    potencia: JSON.stringify(this.dispositivo.potencia),
-                    voltaje: JSON.stringify(this.dispositivo.voltaje),
-                    corriente: JSON.stringify(this.dispositivo.corriente),
-                    caudal: JSON.stringify(this.dispositivo.caudal),
-                    estado: this.dispositivo.estado,
-                    registro_usuario: this.usuario.id // ID del usuario actual
-                };
 
-                // Enviar a la API de AWS
-                const response = await axios.post('https://tu-api-aws.com/dispositivos', payload);
+            // Enviar a la API
+            const response = await axios.post('https://tu-api-aws.com/dispositivos', payload);
+            
+            if (response.status === 201) {
+                // Actualizar dispositivo con ID generado
+                this.dispositivo.identifica.identificador = response.data.id;
                 
-                if (response.status === 201) {
-                    // Agregar el dispositivo al store
-                    const nuevoDispositivo = {
-                        id: response.data.id,
-                        ...this.dispositivo,
-                        registro_fecha: new Date().toISOString()
-                    };
-                    this.$store.commit('agregarDispositivo', nuevoDispositivo);
-                    this.$router.push('/menu/dispositivos');
-                }
-            } catch (error) {
-                if (error.response && error.response.status === 409) {
-                    this.alerta.mensaje = 'El nombre del dispositivo ya existe en la base de datos.';
-                } else {
-                    this.alerta.mensaje = 'Error al guardar el dispositivo. Por favor, inténtelo de nuevo.';
-                    console.error('Error al guardar dispositivo:', error);
-                }
+                // Agregar al store local
+                let dispositivos = this.$store.state.dispositivos;
+                dispositivos.push(JSON.parse(JSON.stringify(this.dispositivo)));
+                this.$store.commit('setDispositivos', dispositivos);
+                
+                this.limpiar();
             }
-        },
+        } catch (error) {
+            console.error('Error al guardar dispositivo:', error);
+            
+            if (error.response && error.response.status === 409) {
+                this.alerta.mensaje = 'El nombre del dispositivo ya existe. Por favor, elige otro nombre.';
+            } else {
+                this.alerta.mensaje = 'Error al guardar el dispositivo. Por favor, inténtelo de nuevo.';
+            }
+        }
+      },
+      
+      limpiar() {
+        this.dispositivo = {
+          identifica: {
+            identificador: 0,
+            nombre: '',
+            ubicacion: '',
+            coordenadas: '19.7060° N, 101.1950° W',
+            potencia:  { nominal: 7.200, minimo: 6.200, maximo: 8.600, um: 'KW' },
+            voltaje: { nominal: 240, minimo: 230, maximo: 250, um: 'Volts' },
+            corriente: { nominal: 30, minimo: 25, maximo: 35, um: 'Amperes' },
+            caudal: { nominal: 1, minimo: 0.10, maximo: 1.20, um: 'm3/minuto' },
+            fechaRegistro: new Date().toUTCString()
+          },
+          opera: {
+            potencia: { valor: 7.200, idEstatus: 1 },
+            voltaje: { valor: 240, idEstatus: 1 },
+            corriente: { valor: 30, idEstatus: 1 },
+            caudal: { valor: 1, idEstatus: 1 },
+            idEstatus: 1,
+            estatus: 'Operacion Normal',
+            fechaRegistro: new Date().toUTCString()
+          },
+          estado: 1
+        };
         
-        limpiar() {
-            // Restablecer solo los campos editables
-            this.dispositivo.nombre = '';
-            this.dispositivo.ubicacion = '';
-            this.dispositivo.coordenadas = '19.7060° N, 101.1950° W';
-            
-            // Restablecer valores predeterminados para los parámetros
-            this.dispositivo.potencia = { nominal: 7.4, min: 6.2, max: 8.6, um: 'KW' };
-            this.dispositivo.voltaje = { nominal: 240, min: 230, max: 250, um: 'Volts' };
-            this.dispositivo.corriente = { nominal: 30, min: 25, max: 35, um: 'Amperes' };
-            this.dispositivo.caudal = { nominal: 1, min: 0.1, max: 1.2, um: 'm³/min' };
-            
-            this.alerta.mensaje = '';
-            this.$refs.nombre.focus();
-        }    
+        this.$router.push('/menu/dispositivos');
+      }    
     }
 }
 </script>
-
-<style scoped>
-/* Mantenemos los estilos específicos */
-</style>
