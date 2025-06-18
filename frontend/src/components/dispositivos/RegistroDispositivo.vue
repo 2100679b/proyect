@@ -167,7 +167,7 @@ export default  {
           };
 
           // Configurar URL del backend (reemplaza con la URL real de tu backend)
-          const API_BASE_URL = process.env.VUE_APP_API_URL || 'https://18.119.167.171:3001'; // o tu URL de backend
+          const API_BASE_URL = process.env.VUE_APP_API_URL || 'https://tu-backend-url.herokuapp.com'; // o tu URL de backend
           
           // Realizar petición POST al backend
           const response = await axios.post(`${API_BASE_URL}/api/dispositivos`, dispositivoData, {
