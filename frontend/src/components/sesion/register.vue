@@ -1,23 +1,28 @@
 <template>
   <div class="register-container">
     <div class="register-card">
+      <div class="logo-container">
+        <div class="app-logo">⚡</div>
+        <h1 class="app-name">Sistema de Simulación</h1>
+      </div>
+      
       <h2>Crear Cuenta</h2>
       <form @submit.prevent="handleSubmit" class="register-form">
 
-        <!-- Nombre completo -->
+        <!-- Email -->
         <div class="form-group">
-          <label for="nombre">Nombre Completo</label>
+          <label for="email">Correo Electrónico</label>
           <input 
-            type="text" 
-            id="nombre"
-            v-model.trim="form.nombre"
-            :class="{ 'error': errors.nombre }"
-            placeholder="Tu nombre completo"
+            type="email" 
+            id="email"
+            v-model.trim="form.email"
+            :class="{ 'error': errors.email }"
+            placeholder="tu-email@ejemplo.com"
             :disabled="isSubmitting"
             required
             maxlength="100"
           />
-          <span v-if="errors.nombre" class="error-message">{{ errors.nombre }}</span>
+          <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
         </div>
 
         <!-- Username -->
@@ -38,35 +43,18 @@
 
         <!-- Password -->
         <div class="form-group">
-          <label for="contrasena">Contraseña</label>
+          <label for="password">Contraseña</label>
           <input 
             type="password" 
-            id="contrasena"
-            v-model="form.contrasena"
-            :class="{ 'error': errors.contrasena }"
+            id="password"
+            v-model="form.password"
+            :class="{ 'error': errors.password }"
             placeholder="Mínimo 8 caracteres"
             :disabled="isSubmitting"
             required
             maxlength="100"
           />
-          <span v-if="errors.contrasena" class="error-message">{{ errors.contrasena }}</span>
-        </div>
-
-        <!-- Roles (opcional) -->
-        <div class="form-group" v-if="showRoleSelection">
-          <label for="roles">Roles</label>
-          <select 
-            id="roles"
-            v-model="form.selectedRoles"
-            :class="{ 'error': errors.roles }"
-            :disabled="isSubmitting"
-            multiple
-          >
-            <option v-for="role in availableRoles" :key="role.id" :value="role.id">
-              {{ role.role }}
-            </option>
-          </select>
-          <span v-if="errors.roles" class="error-message">{{ errors.roles }}</span>
+          <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
         </div>
 
         <!-- Mensajes -->
@@ -96,34 +84,17 @@ export default {
   data() {
     return {
       form: {
-        nombre: '',
+        email: '',
         username: '',
-        contrasena: '',
-        selectedRoles: []
+        password: '',
       },
       errors: {},
       isSubmitting: false,
       generalError: '',
       successMessage: '',
-      showRoleSelection: false, // Cambiar a true si quieres mostrar selección de roles
-      availableRoles: []
     };
   },
-  async mounted() {
-    if (this.showRoleSelection) {
-      await this.loadAvailableRoles();
-    }
-  },
   methods: {
-    async loadAvailableRoles() {
-      try {
-        const response = await axios.get('/api/roles');
-        this.availableRoles = response.data;
-      } catch (error) {
-        console.error('Error cargando roles:', error);
-      }
-    },
-
     clearMessages() {
       this.generalError = '';
       this.successMessage = '';
@@ -133,20 +104,20 @@ export default {
     validateForm() {
       this.errors = {};
 
-      if (!this.form.nombre || this.form.nombre.length > 100) {
-        this.errors.nombre = 'El nombre completo es requerido y debe tener máximo 100 caracteres';
+      // Validación de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!this.form.email || !emailRegex.test(this.form.email)) {
+        this.errors.email = 'Por favor ingresa un correo electrónico válido';
       }
 
-      if (!this.form.username || this.form.username.length < 3 || this.form.username.length > 100) {
-        this.errors.username = 'El nombre de usuario debe tener entre 3 y 100 caracteres';
+      // Validación de username
+      if (!this.form.username || this.form.username.length < 3 || this.form.username.length > 30) {
+        this.errors.username = 'El nombre de usuario debe tener entre 3 y 30 caracteres';
       }
 
-      if (!this.form.contrasena || this.form.contrasena.length < 8 || this.form.contrasena.length > 100) {
-        this.errors.contrasena = 'La contraseña debe tener entre 8 y 100 caracteres';
-      }
-
-      if (this.showRoleSelection && this.form.selectedRoles.length === 0) {
-        this.errors.roles = 'Debe seleccionar al menos un rol';
+      // Validación de password
+      if (!this.form.password || this.form.password.length < 8 || this.form.password.length > 100) {
+        this.errors.password = 'La contraseña debe tener entre 8 y 100 caracteres';
       }
 
       return Object.keys(this.errors).length === 0;
@@ -161,64 +132,223 @@ export default {
 
       try {
         const userData = {
-          nombre: this.form.nombre.trim(),
+          email: this.form.email.trim(),
           username: this.form.username.trim(),
-          password: this.form.contrasena,   // <-- Aquí corregí para que la propiedad sea "password"
-          roles: this.form.selectedRoles.length ? this.form.selectedRoles : []
+          password: this.form.password,
         };
-
-        console.log('Enviando datos:', { ...userData, password: '[HIDDEN]' });
 
         const response = await axios.post('/api/users/register', userData);
 
-        if (response.status >= 200 && response.status < 300) {
-          this.successMessage = 'Usuario registrado con éxito. ¡Ya puedes iniciar sesión!';
-
+        if (response.data.message) {
+          this.successMessage = response.data.message;
+          
           // Limpiar formulario
           this.form = {
-            nombre: '',
+            email: '',
             username: '',
-            contrasena: '',
-            selectedRoles: []
+            password: '',
           };
 
+          // Redirigir después de 2 segundos
           setTimeout(() => {
             this.$router.push('/login');
           }, 2000);
-        } else {
-          this.generalError = response.data.mensaje || 'Error al registrar usuario';
         }
       } catch (error) {
-        console.error('Error en registro:', error);
-
-        if (error.response) {
-          const status = error.response.status;
-          const message = error.response.data?.mensaje || error.response.data?.error;
-
-          switch (status) {
-            case 409:
-              this.generalError = 'El nombre de usuario o nombre completo ya existe. Elige otro.';
-              break;
-            case 400:
-              this.generalError = message || 'Datos inválidos. Verifica la información.';
-              break;
-            case 500:
-              this.generalError = 'Error interno del servidor. Intenta más tarde.';
-              break;
-            default:
-              this.generalError = message || 'Error del servidor.';
-          }
-        } else if (error.request) {
-          this.generalError = 'Error de conexión. Verifica tu internet.';
-        } else {
-          this.generalError = 'Error desconocido. Intenta nuevamente.';
-        }
+        this.handleError(error);
       } finally {
         this.isSubmitting = false;
+      }
+    },
+    
+    handleError(error) {
+      console.error('Error en registro:', error);
+
+      if (error.response) {
+        const status = error.response.status;
+        const message = error.response.data?.error || error.response.data?.message;
+
+        switch (status) {
+          case 400:
+            this.generalError = message || 'Datos inválidos. Verifica la información.';
+            break;
+          case 409:
+            this.generalError = 'El correo o nombre de usuario ya están registrados';
+            break;
+          default:
+            this.generalError = message || 'Error del servidor. Intenta más tarde.';
+        }
+      } else if (error.request) {
+        this.generalError = 'Error de conexión. Verifica tu internet.';
+      } else {
+        this.generalError = 'Error desconocido. Intenta nuevamente.';
       }
     }
   }
 };
 </script>
 
-<style scoped src="./register.css"></style>
+<style scoped>
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+  padding: 20px;
+}
+
+.register-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  padding: 40px;
+  width: 100%;
+  max-width: 500px;
+  transition: all 0.3s ease;
+}
+
+.logo-container {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.app-logo {
+  font-size: 64px;
+  margin-bottom: 10px;
+}
+
+.app-name {
+  color: #2c3e50;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+h2 {
+  color: #2c3e50;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.register-form {
+  margin-top: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #2c3e50;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+  box-sizing: border-box;
+}
+
+input:focus {
+  border-color: #3498db;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+input.error {
+  border-color: #e74c3c;
+}
+
+.error-message {
+  display: block;
+  margin-top: 5px;
+  color: #e74c3c;
+  font-size: 14px;
+}
+
+.register-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(to right, #3498db, #2c3e50);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.register-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.register-btn:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.login-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 15px;
+}
+
+.login-link a {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+}
+
+.general-error {
+  padding: 12px;
+  background-color: #ffecec;
+  color: #e74c3c;
+  border: 1px solid #fadbd8;
+  border-radius: 8px;
+  margin-top: 15px;
+  text-align: center;
+}
+
+.success-message {
+  padding: 12px;
+  background-color: #e8f7f0;
+  color: #27ae60;
+  border: 1px solid #d4efdf;
+  border-radius: 8px;
+  margin-top: 15px;
+  text-align: center;
+}
+
+@media (max-width: 500px) {
+  .register-card {
+    padding: 25px;
+  }
+  
+  h2 {
+    font-size: 24px;
+  }
+  
+  input, .register-btn {
+    padding: 12px;
+  }
+}
+</style>
