@@ -84,7 +84,7 @@
 
 <script>
 import axios from 'axios';
-import { setAuthToken } from '../utils/auth';
+import { setAuthToken } from '../../utils/auth';
 
 // Configura la URL base para las peticiones HTTP
 axios.defaults.baseURL = process.env.VUE_APP_API_URL || '';
