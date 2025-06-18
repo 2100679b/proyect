@@ -123,6 +123,11 @@ export default  {
     computed: {
         // URL base de la API
         apiUrl() {
+            // En producción, usar el proxy de Netlify
+            if (process.env.NODE_ENV === 'production') {
+                return '' // Usa rutas relativas para el proxy
+            }
+            // En desarrollo local
             return process.env.VUE_APP_API_URL || 'http://18.119.167.171:3000'
         }
     }, 
