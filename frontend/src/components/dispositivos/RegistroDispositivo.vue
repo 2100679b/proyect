@@ -6,46 +6,56 @@
         <hr />
       </div>
       <div class="row p-1"> 
-        <form @submit.prevent>
+        <form @submit.prevent="guardar">
           <div class="form-floating p-1">
-            <input type="text" id="identificador" class="form-control"
+            <input
+              type="text"
+              id="identificador"
+              class="form-control"
               v-model="dispositivo.identifica.identificador"
-              @keyup.enter="tfPassword"
-              placeholder="Identificador" />
+              placeholder="Identificador"
+              required
+            />
             <label for="identificador" class="form-text text-muted">Identificador</label>
           </div>            
           <div class="form-floating p-1">
-            <input type="text" id="nombreDisp" class="form-control"
+            <input
+              type="text"
+              id="nombreDisp"
+              class="form-control"
               v-model="dispositivo.identifica.nombre"
-              placeholder="Nombre del dispositivo" />
+              placeholder="Nombre del dispositivo"
+              required
+            />
             <label for="nombreDisp" class="form-text text-muted">Nombre del dispositivo</label>
           </div>
           <div class="form-floating p-1">
-            <input type="text" id="ubicacion" class="form-control"
+            <input
+              type="text"
+              id="ubicacion"
+              class="form-control"
               v-model="dispositivo.identifica.ubicacion"
-              placeholder="Ubicación" />
+              placeholder="Ubicación"
+            />
             <label for="ubicacion" class="form-text text-muted">Ubicación</label>
+          </div>
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-outline-success me-2" type="submit">
+              <i class="bi bi-box-arrow-in-right"></i> Guardar
+            </button>
+            <button class="btn btn-outline-secondary" type="button" @click="cancelar">
+              <i class="bi bi-x-circle"></i> Cancelar
+            </button>
           </div>
         </form>
       </div>
 
-      <div class="row p-2">
+      <div class="row p-2" v-if="alerta.mensaje">
         <div class="col-12">
-          <div class="alert alert-danger" role="alert" v-if="alerta.mensaje">
+          <div class="alert alert-danger" role="alert">
             <strong>¡Error!</strong>
             <p v-html="alerta.mensaje"></p>
           </div>
-        </div>
-      </div>
-
-      <div class="row p-2">
-        <div class="col">
-          <button class="btn btn-outline-success" type="button" @click="guardar">
-            <i class="bi bi-box-arrow-in-right"></i> Guardar
-          </button>
-          <button class="btn btn-outline-secondary" type="button" @click="cancelar">
-            <i class="bi bi-x-circle"></i> Cancelar
-          </button>
         </div>
       </div>
     </div>
@@ -63,13 +73,13 @@ export default {
       alerta: {
         mensaje: '',
       }
-    };
+    }
   },
   methods: {
     nuevoDispositivo() {
       return {
         identifica: {
-          identificador: 0,
+          identificador: '',
           nombre: '',
           ubicacion: '',
           coordenadas: '19.7060° N, 101.1950° W',
@@ -91,38 +101,46 @@ export default {
           fechaRegistro: new Date().toUTCString()
         },
         estado: 1
-      };
+      }
     },
     async guardar() {
+      this.alerta.mensaje = ''  // limpio mensaje error
+
+      // Validaciones básicas
+      if (
+        !this.dispositivo.identifica.identificador.trim() ||
+        !this.dispositivo.identifica.nombre.trim()
+      ) {
+        this.alerta.mensaje = 'Por favor completa los campos Identificador y Nombre del dispositivo.'
+        return
+      }
+
       try {
-        const response = await axios.post('https://18.119.167.171:3001/api/dispositivos', this.dispositivo);
+        const apiUrl = process.env.VUE_APP_API_URL || 'http://localhost:3001'
+        const response = await axios.post(`${apiUrl}/api/dispositivos`, this.dispositivo)
         
         if (response.status === 201 || response.status === 200) {
-          this.limpiar();
-          this.$router.push('/menu/dispositivos');
+          this.limpiar()
+          this.$router.push('/menu/dispositivos')
         } else {
-          this.alerta.mensaje = 'No se pudo guardar el dispositivo.';
-          console.error('Respuesta no esperada:', response);
+          this.alerta.mensaje = 'No se pudo guardar el dispositivo.'
+          console.error('Respuesta no esperada:', response)
         }
       } catch (e) {
-        this.alerta.mensaje = 'Error al conectarse con el servidor.';
-        console.error('Error en guardar:', e);
+        this.alerta.mensaje = 'Error al conectarse con el servidor.'
+        console.error('Error en guardar:', e)
       }
     },
     limpiar() {
-      this.dispositivo = this.nuevoDispositivo();
+      this.dispositivo = this.nuevoDispositivo()
     },
     cancelar() {
-      this.limpiar();
-      this.$router.push('/menu/dispositivos');
-    },
-    tfPassword() {
-      // lógica opcional al presionar Enter
+      this.limpiar()
+      this.$router.push('/menu/dispositivos')
     }
   }
 }
 </script>
-
 
 <style scoped>
 .record-card {
