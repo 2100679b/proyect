@@ -2,10 +2,9 @@
   <div id="login" class="card bg-transparent mb-3 record-card">
     <div class="card-body">
       <div class="text-center">
-        <h4 class="card-title" title="Plataforma para monitoreo de Sistemas de Bombeo">Registro Dispositivo</h4>
+        <h4 class="card-title">Registro Dispositivo</h4>
         <hr />
       </div>
-
       <div class="row p-1">
         <form @submit.prevent="guardar">
           <div class="form-floating p-1">
@@ -18,9 +17,8 @@
               required
               autocomplete="off"
             />
-            <label for="identificador" class="form-text text-muted">Identificador</label>
+            <label for="identificador">Identificador</label>
           </div>
-
           <div class="form-floating p-1">
             <input
               type="text"
@@ -31,9 +29,8 @@
               required
               autocomplete="off"
             />
-            <label for="nombreDisp" class="form-text text-muted">Nombre del dispositivo</label>
+            <label for="nombreDisp">Nombre del dispositivo</label>
           </div>
-
           <div class="form-floating p-1">
             <input
               type="text"
@@ -43,23 +40,13 @@
               placeholder="Ubicación"
               autocomplete="off"
             />
-            <label for="ubicacion" class="form-text text-muted">Ubicación</label>
+            <label for="ubicacion">Ubicación</label>
           </div>
-
           <div class="d-flex justify-content-end mt-3">
-            <button 
-              class="btn btn-outline-success me-2" 
-              type="submit"
-              :disabled="guardando"
-            >
-              <i class="bi bi-box-arrow-in-right"></i> {{ guardando ? 'Registrando...' : 'Guardar' }}
+            <button class="btn btn-outline-success me-2" type="submit" :disabled="guardando">
+              <i class="bi bi-box-arrow-in-right"></i> Guardar
             </button>
-            <button 
-              class="btn btn-outline-secondary" 
-              type="button" 
-              @click="cancelar"
-              :disabled="guardando"
-            >
+            <button class="btn btn-outline-secondary" type="button" @click="cancelar" :disabled="guardando">
               <i class="bi bi-x-circle"></i> Cancelar
             </button>
           </div>
@@ -70,7 +57,7 @@
         <div class="col-12">
           <div class="alert alert-danger" role="alert">
             <strong>¡Error!</strong>
-            <p>{{ alerta.mensaje }}</p>
+            <p v-html="alerta.mensaje"></p>
           </div>
         </div>
       </div>
@@ -87,9 +74,9 @@ export default {
     return {
       dispositivo: this.nuevoDispositivo(),
       alerta: {
-        mensaje: '',
+        mensaje: ''
       },
-      guardando: false,
+      guardando: false
     }
   },
   methods: {
@@ -124,13 +111,15 @@ export default {
       this.alerta.mensaje = ''
       if (this.guardando) return
 
-      const { identificador, nombre } = this.dispositivo.identifica
-      if (!identificador || !nombre) {
-        this.alerta.mensaje = 'Por favor completa los campos Identificador y Nombre del dispositivo.'
+      if (
+        !this.dispositivo.identifica.identificador.trim() ||
+        !this.dispositivo.identifica.nombre.trim()
+      ) {
+        this.alerta.mensaje = 'Por favor completa los campos <strong>Identificador</strong> y <strong>Nombre del dispositivo</strong>.'
         return
       }
 
-      const apiUrl = process.env.VUE_APP_API_URL?.replace(/\/$/, '')
+      const apiUrl = process.env.VUE_APP_API_URL
       if (!apiUrl) {
         this.alerta.mensaje = 'La URL de la API no está configurada. Contacta al administrador.'
         return
@@ -139,7 +128,7 @@ export default {
       this.guardando = true
       try {
         const response = await axios.post(`${apiUrl}/api/dispositivos`, this.dispositivo)
-        if ([200, 201].includes(response.status)) {
+        if (response.status === 201 || response.status === 200) {
           this.limpiar()
           this.$router.push('/menu/dispositivos')
         } else {
