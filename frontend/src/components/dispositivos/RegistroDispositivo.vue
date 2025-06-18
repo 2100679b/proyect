@@ -1,83 +1,95 @@
 <template>
-<div id="login" class="card bg-trasparent mb-3 record-card" >
+  <div id="login" class="card bg-trasparent mb-3 record-card">
     <div class="card-body">
-    <div class="text-center">
+      <div class="text-center">
         <h4 class="card-title" title="Plataforma para monitoreo de Sistemas de Bombeo">Registro Dispositivo</h4>
         <hr />
-    </div>
-    <div class="row p-1"> 
+      </div>
+
+      <div class="row p-1"> 
         <form @submit.prevent="guardar">
-              <div class="form-floating p-1">
-                <input 
-                  type="text" 
-                  id="nombreDisp" 
-                  ref="nombreDisp" 
-                  class="form-control" 
-                  v-model="dispositivo.nombre" 
-                  required
-                  aria-describedby="Nombre" 
-                  placeholder="Nombre del dispositivo"
-                />
-                <label for="nombreDisp" class="form-text text-muted">Nombre del dispositivo</label>
-              </div>
-              <div class="form-floating p-1">
-                <input 
-                  type="text" 
-                  id="ubicacion" 
-                  ref="ubicacion" 
-                  class="form-control" 
-                  v-model="dispositivo.ubicacion" 
-                  required
-                  aria-describedby="Ubicacion" 
-                  placeholder="Ubicacion"
-                />
-                <label for="ubicacion" class="form-text text-muted">Ubicación</label>
-              </div>
-              <div class="form-floating p-1">
-                <input 
-                  type="text" 
-                  id="coordenadas" 
-                  ref="coordenadas" 
-                  class="form-control" 
-                  v-model="dispositivo.coordenadas" 
-                  aria-describedby="Coordenadas" 
-                  placeholder="Coordenadas"
-                />
-                <label for="coordenadas" class="form-text text-muted">Coordenadas</label>
-              </div>
-            </form>
-            </div>
-            <div class="row p-2">
-            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                <div class="alert alert-danger" role="alert" v-if="alerta.mensaje">
-                <strong>¡Error!</strong>
-                <p v-html="alerta.mensaje"></p>
-                </div>
-                <div class="alert alert-success" role="alert" v-if="alerta.exito">
-                <strong>¡Éxito!</strong>
-                <p v-html="alerta.exito"></p>
-                </div>
-            </div>
-        </div>
-        <div class="row p-2">
+          <div class="form-floating p-1">
+            <input 
+              type="text" 
+              id="nombreDisp" 
+              ref="nombreDisp" 
+              class="form-control" 
+              v-model="dispositivo.nombre" 
+              required
+              aria-describedby="Nombre" 
+              placeholder="Nombre del dispositivo"
+            />
+            <label for="nombreDisp" class="form-text text-muted">Nombre del dispositivo</label>
+          </div>
+
+          <div class="form-floating p-1">
+            <input 
+              type="text" 
+              id="ubicacion" 
+              ref="ubicacion" 
+              class="form-control" 
+              v-model="dispositivo.ubicacion" 
+              required
+              aria-describedby="Ubicacion" 
+              placeholder="Ubicacion"
+            />
+            <label for="ubicacion" class="form-text text-muted">Ubicación</label>
+          </div>
+
+          <div class="form-floating p-1">
+            <input 
+              type="text" 
+              id="coordenadas" 
+              ref="coordenadas" 
+              class="form-control" 
+              v-model="dispositivo.coordenadas" 
+              aria-describedby="Coordenadas" 
+              placeholder="Coordenadas"
+            />
+            <label for="coordenadas" class="form-text text-muted">Coordenadas</label>
+          </div>
+
+          <!-- Botones dentro del form -->
+          <div class="row p-2">
             <div class="col">
-                <button 
-                  class="btn btn-outline-success" 
-                  type="button" 
-                  @click="guardar()" 
-                  :disabled="guardando"
-                > 
-                  <i class="bi bi-box-arrow-in-right"></i> 
-                  {{ guardando ? 'Guardando...' : 'Guardar' }}
-                </button>
-                <button class="btn btn-outline-secondary" type="button" @click="limpiar()"> 
-                  <i class="bi bi-x-circle"></i> Cancelar 
-                </button>
+              <button 
+                class="btn btn-outline-success" 
+                type="submit"
+                :disabled="guardando"
+              > 
+                <i class="bi bi-box-arrow-in-right"></i> 
+                {{ guardando ? 'Guardando...' : 'Guardar' }}
+              </button>
+
+              <button 
+                class="btn btn-outline-secondary" 
+                type="button" 
+                @click="limpiar()"
+              > 
+                <i class="bi bi-x-circle"></i> Cancelar 
+              </button>
             </div>
+          </div>
+        </form> <!-- ✅ corregido: ahora se cierra correctamente aquí -->
+      </div>
+
+      <div class="row p-2">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+          <div class="alert alert-danger" role="alert" v-if="alerta.mensaje">
+            <strong>¡Error!</strong>
+            <p v-html="alerta.mensaje"></p>
+          </div>
+
+          <div class="alert alert-success" role="alert" v-if="alerta.exito">
+            <strong>¡Éxito!</strong>
+            <p v-html="alerta.exito"></p>
+          </div>
         </div>
+      </div>
     </div>
-</div>
+  </div>
 </template>
+
       
 <script>
 import axios from 'axios'
