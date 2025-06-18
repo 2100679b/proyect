@@ -5,7 +5,8 @@
         <h4 class="card-title" title="Plataforma para monitoreo de Sistemas de Bombeo">Registro Dispositivo</h4>
         <hr />
       </div>
-      <div class="row p-1"> 
+
+      <div class="row p-1">
         <form @submit.prevent="guardar">
           <div class="form-floating p-1">
             <input
@@ -18,7 +19,8 @@
               autocomplete="off"
             />
             <label for="identificador" class="form-text text-muted">Identificador</label>
-          </div>            
+          </div>
+
           <div class="form-floating p-1">
             <input
               type="text"
@@ -31,6 +33,7 @@
             />
             <label for="nombreDisp" class="form-text text-muted">Nombre del dispositivo</label>
           </div>
+
           <div class="form-floating p-1">
             <input
               type="text"
@@ -42,13 +45,14 @@
             />
             <label for="ubicacion" class="form-text text-muted">Ubicación</label>
           </div>
+
           <div class="d-flex justify-content-end mt-3">
             <button 
               class="btn btn-outline-success me-2" 
               type="submit"
               :disabled="guardando"
             >
-              <i class="bi bi-box-arrow-in-right"></i> Guardar
+              <i class="bi bi-box-arrow-in-right"></i> {{ guardando ? 'Registrando...' : 'Guardar' }}
             </button>
             <button 
               class="btn btn-outline-secondary" 
@@ -66,7 +70,7 @@
         <div class="col-12">
           <div class="alert alert-danger" role="alert">
             <strong>¡Error!</strong>
-            <p v-html="alerta.mensaje"></p>
+            <p>{{ alerta.mensaje }}</p>
           </div>
         </div>
       </div>
@@ -118,16 +122,15 @@ export default {
     },
     async guardar() {
       this.alerta.mensaje = ''
-      if (this.guardando) return // evitar doble envío
-      if (
-        !this.dispositivo.identifica.identificador.trim() ||
-        !this.dispositivo.identifica.nombre.trim()
-      ) {
+      if (this.guardando) return
+
+      const { identificador, nombre } = this.dispositivo.identifica
+      if (!identificador || !nombre) {
         this.alerta.mensaje = 'Por favor completa los campos Identificador y Nombre del dispositivo.'
         return
       }
 
-      const apiUrl = process.env.VUE_APP_API_URL
+      const apiUrl = process.env.VUE_APP_API_URL?.replace(/\/$/, '')
       if (!apiUrl) {
         this.alerta.mensaje = 'La URL de la API no está configurada. Contacta al administrador.'
         return
@@ -136,12 +139,12 @@ export default {
       this.guardando = true
       try {
         const response = await axios.post(`${apiUrl}/api/dispositivos`, this.dispositivo)
-        if (response.status === 201 || response.status === 200) {
+        if ([200, 201].includes(response.status)) {
           this.limpiar()
           this.$router.push('/menu/dispositivos')
         } else {
           this.alerta.mensaje = 'No se pudo guardar el dispositivo.'
-          console.error('Respuesta no esperada:', response)
+          console.error('Respuesta inesperada:', response)
         }
       } catch (e) {
         this.alerta.mensaje = 'Error al conectarse con el servidor.'
