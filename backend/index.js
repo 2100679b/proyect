@@ -4,9 +4,9 @@ const app = express();
 const cors = require('cors');
 const morgan = require('morgan');
 
-// Importa todas las rutas
-const usersRoutes = require('./routes/users');
-const dispositivosRoutes = require('./routes/dispositivos'); // Nueva ruta para dispositivos
+// Middlewares
+app.use(express.json());
+app.use(morgan('dev'));
 
 // Configuración de CORS
 const corsOptions = {
@@ -17,15 +17,15 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Middlewares
-app.use(express.json());
-app.use(morgan('dev'));
+// Rutas
+const usersRoutes = require('./routes/users');
+const dispositivosRoutes = require('./routes/dispositivos');
 
-// Rutas principales
+// Asociar rutas principales
 app.use('/api/users', usersRoutes);
-app.use('/api/dispositivos', dispositivosRoutes); // Agregada nueva ruta
+app.use('/api/dispositivos', dispositivosRoutes);
 
-// Ruta de verificación de estado
+// Ruta de prueba para saber si el backend está activo
 app.get('/', (req, res) => {
   res.json({ 
     mensaje: '🚀 Backend activo y funcionando',
@@ -34,19 +34,22 @@ app.get('/', (req, res) => {
   });
 });
 
-// Middleware para manejar errores 404
+// Middleware para rutas no encontradas
 app.use((req, res, next) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
 });
 
 // Manejador global de errores
 app.use((err, req, res, next) => {
-  console.error('\x1b[31m', '⚠️ Error:', err.stack); // Log en rojo
+  console.error('\x1b[31m', '⚠️ Error:', err.stack);
   res.status(500).json({ 
     error: 'Error interno del servidor',
     detalle: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
 
-// Exportar la app sin iniciar el servidor
-module.exports = app;
+// Iniciar servidor
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`✅ Servidor corriendo en http://18.119.167.171:${PORT}`);
+});

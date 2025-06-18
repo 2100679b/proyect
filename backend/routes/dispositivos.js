@@ -3,10 +3,16 @@ const router = express.Router();
 const db = require('../db/db');
 const auth = require('../middleware/auth');
 
+// Ruta simple de prueba sin auth ni validaciones
+router.post('/dispositivos', (req, res) => {
+  console.log('✅ Solicitud POST recibida en /dispositivos');
+  console.log('📦 Datos recibidos:', req.body);
+  res.status(201).json({ message: 'Dispositivo creado (ruta básica)' });
+});
+
 // Función para validar formato de coordenadas
 const validarCoordenadas = (coordenadas) => {
   if (!coordenadas) return false;
-  // Regex para formato: "XX.XXXX° N/S, XXX.XXXX° E/W"
   const regex = /^\d{1,2}\.\d{4}°\s[NS],\s\d{1,3}\.\d{4}°\s[EW]$/;
   return regex.test(coordenadas);
 };
@@ -23,26 +29,19 @@ const toJsonSafe = (obj) => {
 
 // Función para validar estructura de datos de medición
 const validarDatosMedicion = (datos, tipo) => {
-  if (!datos) return true; // Es opcional
-  
-  if (typeof datos !== 'object' || Array.isArray(datos)) {
-    return false;
-  }
-  
-  // Validaciones específicas según el tipo
+  if (!datos) return true;
+  if (typeof datos !== 'object' || Array.isArray(datos)) return false;
   const camposRequeridos = {
-    potencia: ['valor', 'unidad'], // ej: {valor: 120, unidad: 'W'}
-    voltaje: ['valor', 'unidad'],  // ej: {valor: 220, unidad: 'V'}
-    corriente: ['valor', 'unidad'], // ej: {valor: 5.5, unidad: 'A'}
-    caudal: ['valor', 'unidad']    // ej: {valor: 10.5, unidad: 'L/min'}
+    potencia: ['valor', 'unidad'],
+    voltaje: ['valor', 'unidad'],
+    corriente: ['valor', 'unidad'],
+    caudal: ['valor', 'unidad']
   };
-  
   const campos = camposRequeridos[tipo];
   if (!campos) return false;
-  
-  return campos.every(campo => 
-    datos.hasOwnProperty(campo) && 
-    datos[campo] !== null && 
+  return campos.every(campo =>
+    datos.hasOwnProperty(campo) &&
+    datos[campo] !== null &&
     datos[campo] !== undefined
   );
 };
