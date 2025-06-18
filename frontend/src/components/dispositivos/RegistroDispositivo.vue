@@ -116,7 +116,7 @@ export default {
       }
 
       try {
-        const apiUrl = process.env.VUE_APP_API_URL || 'http://localhost:3001'
+        const apiUrl = process.env.VUE_APP_API_URL
         const response = await axios.post(`${apiUrl}/api/dispositivos`, this.dispositivo)
         
         if (response.status === 201 || response.status === 200) {
