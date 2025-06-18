@@ -1,3 +1,4 @@
+// src/utils/auth.js
 import axios from 'axios';
 
 export const setAuthToken = (token) => {
