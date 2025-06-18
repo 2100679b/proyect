@@ -1,7 +1,7 @@
-// src/main.js
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
+import store from './store' // Importa el store de Vuex
 import axios from 'axios'
 import { checkAuth, setAuthToken } from './utils/auth'
 
@@ -18,13 +18,14 @@ checkAuth()
 // Crea la aplicación Vue
 const app = createApp(App)
 
-// Inyecta router
+// Inyecta router y store
 app.use(router)
+app.use(store) // ¡Esta línea es crucial para que Vuex funcione!
 
 // Inyecta Axios globalmente
 app.config.globalProperties.$axios = axios
 
-// Manejo global de errores (debe ir antes de .mount)
+// Manejo global de errores
 app.config.errorHandler = (err, vm, info) => {
   console.error(`Error global: ${err.toString()}\nInfo: ${info}`)
 
@@ -41,4 +42,5 @@ app.mount('#app')
 // Solo en desarrollo: expone el router en consola para depuración
 if (process.env.NODE_ENV === 'development') {
   window.$router = router
+  window.$store = store // También expone el store para depuración
 }
