@@ -12,7 +12,7 @@
               type="text"
               id="identificador"
               class="form-control"
-              v-model="dispositivo.identifica.identificador"
+              v-model.trim="dispositivo.identifica.identificador"
               placeholder="Identificador"
               required
             />
@@ -23,7 +23,7 @@
               type="text"
               id="nombreDisp"
               class="form-control"
-              v-model="dispositivo.identifica.nombre"
+              v-model.trim="dispositivo.identifica.nombre"
               placeholder="Nombre del dispositivo"
               required
             />
@@ -34,7 +34,7 @@
               type="text"
               id="ubicacion"
               class="form-control"
-              v-model="dispositivo.identifica.ubicacion"
+              v-model.trim="dispositivo.identifica.ubicacion"
               placeholder="Ubicación"
             />
             <label for="ubicacion" class="form-text text-muted">Ubicación</label>
@@ -106,17 +106,22 @@ export default {
     async guardar() {
       this.alerta.mensaje = ''  // limpio mensaje error
 
-      // Validaciones básicas
+      // Validaciones básicas con trim
       if (
-        !this.dispositivo.identifica.identificador.trim() ||
-        !this.dispositivo.identifica.nombre.trim()
+        !this.dispositivo.identifica.identificador ||
+        !this.dispositivo.identifica.nombre
       ) {
         this.alerta.mensaje = 'Por favor completa los campos Identificador y Nombre del dispositivo.'
         return
       }
 
+      const apiUrl = process.env.VUE_APP_API_URL
+      if (!apiUrl) {
+        this.alerta.mensaje = 'La URL de la API no está configurada. Contacta al administrador.'
+        return
+      }
+
       try {
-        const apiUrl = process.env.VUE_APP_API_URL
         const response = await axios.post(`${apiUrl}/api/dispositivos`, this.dispositivo)
         
         if (response.status === 201 || response.status === 200) {
