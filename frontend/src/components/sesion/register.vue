@@ -36,7 +36,7 @@
             placeholder="Nombre de usuario"
             :disabled="isSubmitting"
             required
-            maxlength="100"
+            maxlength="30"
           />
           <span v-if="errors.username" class="error-message">{{ errors.username }}</span>
         </div>
@@ -58,8 +58,12 @@
         </div>
 
         <!-- Mensajes -->
-        <div v-if="generalError" class="general-error">{{ generalError }}</div>
-        <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
+        <div v-if="generalError" class="message-box error-message">
+          <i class="icon">⚠️</i> {{ generalError }}
+        </div>
+        <div v-if="successMessage" class="message-box success-message">
+          <i class="icon">✅</i> {{ successMessage }}
+        </div>
 
         <!-- Botón -->
         <button type="submit" class="register-btn" :disabled="isSubmitting">
@@ -106,18 +110,26 @@ export default {
 
       // Validación de email
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!this.form.email || !emailRegex.test(this.form.email)) {
+      if (!this.form.email) {
+        this.errors.email = 'El correo electrónico es requerido';
+      } else if (!emailRegex.test(this.form.email)) {
         this.errors.email = 'Por favor ingresa un correo electrónico válido';
       }
 
       // Validación de username
-      if (!this.form.username || this.form.username.length < 3 || this.form.username.length > 30) {
-        this.errors.username = 'El nombre de usuario debe tener entre 3 y 30 caracteres';
+      if (!this.form.username) {
+        this.errors.username = 'El nombre de usuario es requerido';
+      } else if (this.form.username.length < 3) {
+        this.errors.username = 'El nombre de usuario debe tener al menos 3 caracteres';
+      } else if (this.form.username.length > 30) {
+        this.errors.username = 'El nombre de usuario no puede exceder los 30 caracteres';
       }
 
       // Validación de password
-      if (!this.form.password || this.form.password.length < 8 || this.form.password.length > 100) {
-        this.errors.password = 'La contraseña debe tener entre 8 y 100 caracteres';
+      if (!this.form.password) {
+        this.errors.password = 'La contraseña es requerida';
+      } else if (this.form.password.length < 8) {
+        this.errors.password = 'La contraseña debe tener al menos 8 caracteres';
       }
 
       return Object.keys(this.errors).length === 0;
@@ -137,7 +149,9 @@ export default {
           password: this.form.password,
         };
 
-        const response = await axios.post('/api/users/register', userData);
+        // Usar la URL base de las variables de entorno
+        const API_URL = process.env.VUE_APP_API_URL || 'http://localhost:3001';
+        const response = await axios.post(`${API_URL}/api/users/register`, userData);
 
         if (response.data.message) {
           this.successMessage = response.data.message;
@@ -318,24 +332,28 @@ input.error {
   text-decoration: underline;
 }
 
-.general-error {
+.message-box {
   padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.error-message {
   background-color: #ffecec;
   color: #e74c3c;
   border: 1px solid #fadbd8;
-  border-radius: 8px;
-  margin-top: 15px;
-  text-align: center;
 }
 
 .success-message {
-  padding: 12px;
   background-color: #e8f7f0;
   color: #27ae60;
   border: 1px solid #d4efdf;
-  border-radius: 8px;
-  margin-top: 15px;
-  text-align: center;
+}
+
+.icon {
+  margin-right: 10px;
 }
 
 @media (max-width: 500px) {
