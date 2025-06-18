@@ -36,7 +36,7 @@
             placeholder="Nombre de usuario"
             :disabled="isSubmitting"
             required
-            maxlength="100"
+            maxlength="30"
           />
           <span v-if="errors.username" class="error-message">{{ errors.username }}</span>
         </div>
@@ -58,8 +58,12 @@
         </div>
 
         <!-- Mensajes -->
-        <div v-if="generalError" class="general-error">{{ generalError }}</div>
-        <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
+        <div v-if="generalError" class="message-box error-message">
+          <i class="icon">⚠️</i> {{ generalError }}
+        </div>
+        <div v-if="successMessage" class="message-box success-message">
+          <i class="icon">✅</i> {{ successMessage }}
+        </div>
 
         <!-- Botón -->
         <button type="submit" class="register-btn" :disabled="isSubmitting">
@@ -78,6 +82,12 @@
 
 <script>
 import axios from 'axios';
+
+// Importa tu configuración de entorno
+import env from '../../env'; // Asegúrate de que la ruta sea correcta
+
+// Configura Axios con la URL base
+axios.defaults.baseURL = env.VUE_APP_API_URL;
 
 export default {
   name: 'Register',
@@ -116,8 +126,8 @@ export default {
       }
 
       // Validación de password
-      if (!this.form.password || this.form.password.length < 8 || this.form.password.length > 100) {
-        this.errors.password = 'La contraseña debe tener entre 8 y 100 caracteres';
+      if (!this.form.password || this.form.password.length < 8) {
+        this.errors.password = 'La contraseña debe tener al menos 8 caracteres';
       }
 
       return Object.keys(this.errors).length === 0;
@@ -318,24 +328,30 @@ input.error {
   text-decoration: underline;
 }
 
-.general-error {
-  padding: 12px;
+.message-box {
+  padding: 15px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  margin-top: 15px;
+  font-size: 15px;
+}
+
+.error-message-box {
   background-color: #ffecec;
   color: #e74c3c;
   border: 1px solid #fadbd8;
-  border-radius: 8px;
-  margin-top: 15px;
-  text-align: center;
 }
 
-.success-message {
-  padding: 12px;
+.success-message-box {
   background-color: #e8f7f0;
   color: #27ae60;
   border: 1px solid #d4efdf;
-  border-radius: 8px;
-  margin-top: 15px;
-  text-align: center;
+}
+
+.icon {
+  margin-right: 10px;
+  font-size: 18px;
 }
 
 @media (max-width: 500px) {

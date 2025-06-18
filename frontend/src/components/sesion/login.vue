@@ -154,7 +154,7 @@ export default {
 
         // Redirige tras 1.5 segundos
         setTimeout(() => {
-          this.$router.push('/dashboard');
+          this.$router.push('/menu');
         }, 1500);
       } catch (error) {
         this.handleError(error, 'inicio de sesión');
